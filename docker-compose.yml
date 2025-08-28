@@ -1,0 +1,37 @@
+version: "3.9"
+services:
+  api:
+    build: ./server
+    ports: [ "8080:8080" ]
+    volumes:
+      - ./server:/app
+    environment:
+      - PORT=8080
+    command: ["go", "run", "."]
+    networks: [ appnet ]
+
+  web:
+    build: ./web
+    ports: [ "3000:3000" ]
+    volumes:
+      - ./web:/app
+    environment:
+      - NEXT_PUBLIC_API_BASE=http://api:8080
+    depends_on: [ api ]
+    command: ["npm", "run", "dev"]
+    networks: [ appnet ]
+
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: enomo
+      POSTGRES_PASSWORD: enomo
+      POSTGRES_DB: enomo_dev
+    ports: [ "5432:5432" ]
+    volumes:
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks: [ appnet ]
+
+networks:
+  appnet:
+    driver: bridge
