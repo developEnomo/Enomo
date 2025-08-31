@@ -4,15 +4,16 @@ import (
 	"net/http"
 
 	"enomo/server/internal/usecase"
+
 	"github.com/labstack/echo/v4"
 )
 
-type UserHandler struct {
+type UserRegisterHandler struct {
 	uc *usecase.UserRegisterUsecase
 }
 
-func NewUserHandler(uc *usecase.UserRegisterUsecase) *UserHandler {
-	return &UserHandler{uc: uc}
+func NewUserRegisterHandler(uc *usecase.UserRegisterUsecase) *UserRegisterHandler {
+	return &UserRegisterHandler{uc: uc}
 }
 
 type Register struct {
@@ -22,7 +23,7 @@ type Register struct {
 	EnergyValue int16  `json:"energy_value"`
 }
 
-func (h *UserHandler) Register(c echo.Context) error {
+func (h *UserRegisterHandler) Register(c echo.Context) error {
 	var req Register
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, echo.Map{"error": "invalid json"})

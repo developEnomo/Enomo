@@ -28,3 +28,15 @@ func (r *UserRepository) Create(ctx context.Context, u *User) error {
 	`, u.Email, u.Password, u.DisplayName, u.EnergyValue).
 		Scan(&u.ID, &u.CreatedAt, &u.UpdatedAt)
 }
+
+func (r *UserRepository) FindByEmail(ctx context.Context, email string) (*User, error) {
+	var u User
+	err := r.DB.QueryRowContext(ctx, `
+		SELECT id, email, password, display_name, energy_value, created_at, updated_at
+		FROM users WHERE email = $1
+	`, email).Scan(&u.ID, &u.Email, &u.Password, &u.DisplayName, &u.EnergyValue, &u.CreatedAt, &u.UpdatedAt)
+	if err != nil {
+		return nil, err
+	}
+	return &u, nil
+}

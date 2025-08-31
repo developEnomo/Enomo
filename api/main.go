@@ -30,10 +30,15 @@ func main() {
 		log.Fatal(err)
 	}
 
-	UserRepository := repository.NewUserRepository(db)
-	UserUseCase := usecase.NewUserRegisterUsecase(UserRepository)
-	UserHandler := domain.NewUserHandler(UserUseCase)
-	e := router.New(UserHandler)
+	repo := repository.NewUserRepository(db)
+
+	regUC := usecase.NewUserRegisterUsecase(repo)
+	regH := domain.NewUserRegisterHandler(regUC)
+
+	loginUC := usecase.NewUserLoginUsecase(repo)
+	loginH := domain.NewUserLoginHandler(loginUC)
+
+	e := router.New(regH, loginH)
 
 	go func() {
 		if err := e.Start(":" + port); err != nil && err != http.ErrServerClosed {
