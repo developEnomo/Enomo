@@ -1,25 +1,33 @@
-version: "3.9"
 services:
   api:
-    build: ./server
-    ports: [ "8080:8080" ]
+    image: golang:1.23
+    working_dir: /app
     volumes:
-      - ./server:/app
+      - ./api:/app
     environment:
-      - PORT=8080
-    command: ["go", "run", "."]
-    networks: [ appnet ]
+      PORT: "8080"
+      DATABASE_URL: "postgres://enomo:enomo@db:5432/enomo_dev?sslmode=disable"
+    depends_on:
+      - db
+    command: ["go", "run", "./cmd"]
+    ports: 
+      - "8080:8080"
+    networks:
+      - appnet
 
   web:
     build: ./web
-    ports: [ "3000:3000" ]
+    ports:
+      - "3000:3000"
     volumes:
       - ./web:/app
     environment:
       - NEXT_PUBLIC_API_BASE=http://api:8080
-    depends_on: [ api ]
+    depends_on: 
+      - api
     command: ["npm", "run", "dev"]
-    networks: [ appnet ]
+    networks:
+      - appnet
 
   db:
     image: postgres:15
@@ -27,10 +35,12 @@ services:
       POSTGRES_USER: enomo
       POSTGRES_PASSWORD: enomo
       POSTGRES_DB: enomo_dev
-    ports: [ "5432:5432" ]
+    ports:
+      - "5432:5432"
     volumes:
       - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
-    networks: [ appnet ]
+    networks:
+      - appnet
 
 networks:
   appnet:
