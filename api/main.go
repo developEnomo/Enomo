@@ -1,16 +1,63 @@
 package main
 
 import (
-	"encoding/json"
+	"context"
+	"database/sql"
+	"log"
 	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
+	"time"
+
+	"enomo/server/internal/domain"
+	"enomo/server/internal/repository"
+	"enomo/server/internal/router"
+	"enomo/server/internal/usecase"
+
+	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
 func main() {
-	http.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) {
-		json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
-	})
-	port := os.Getenv("PORT")
-	if port == "" { port = "8080" }
-	http.ListenAndServe(":"+port, nil)
+	port := getenv("PORT", "8080")
+	dsn := getenv("DATABASE_URL", "postgres://enomo:enomo@localhost:5432/enomo_dev?sslmode=disable")
+
+	db, err := sql.Open("pgx", dsn)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if err := db.Ping(); err != nil {
+		log.Fatal(err)
+	}
+
+	UserRepository := repository.NewUserRepository(db)
+	UserUseCase := usecase.NewUserRegisterUsecase(UserRepository)
+	UserHandler := domain.NewUserHandler(UserUseCase)
+	e := router.New(UserHandler)
+
+	go func() {
+		if err := e.Start(":" + port); err != nil && err != http.ErrServerClosed {
+			log.Fatal(err)
+		}
+	}()
+
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
+	<-quit
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	if err := e.Shutdown(ctx); err != nil {
+		log.Fatal(err)
+	}
+	if err := db.Close(); err != nil {
+		log.Fatal(err)
+	}
+}
+
+func getenv(key, fallback string) string {
+	if v := os.Getenv(key); v != "" {
+		return v
+	}
+	return fallback
 }
