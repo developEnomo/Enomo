@@ -31,14 +31,18 @@ func main() {
 	}
 
 	repo := repository.NewUserRepository(db)
+	store := repository.NewPostgresTokenStore(db)
 
 	regUC := usecase.NewUserRegisterUsecase(repo)
 	regH := domain.NewUserRegisterHandler(regUC)
 
 	loginUC := usecase.NewUserLoginUsecase(repo)
-	loginH := domain.NewUserLoginHandler(loginUC)
+	loginH := domain.NewUserLoginHandler(loginUC, store)
 
-	e := router.New(regH, loginH)
+	logoutUC := usecase.NewUserLogoutUsecase(store)
+	logoutH := domain.NewUserLogoutHandler(logoutUC)
+
+	e := router.New(regH, loginH, logoutH)
 
 	go func() {
 		if err := e.Start(":" + port); err != nil && err != http.ErrServerClosed {
