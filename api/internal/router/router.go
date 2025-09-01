@@ -14,7 +14,7 @@ func New(reg *domain.UserRegisterHandler, login *domain.UserLoginHandler) *echo.
 
 	api := e.Group("/api/v1")
 	api.POST("/users/register", reg.Register)
-	api.POST("/auth/login", login.Login)
+	api.POST("/users/login", login.Login)
 
 	return e
 }

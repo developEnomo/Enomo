@@ -6,14 +6,14 @@ import (
 	"time"
 )
 
-type RegisterInput struct {
+type RegisterRequest struct {
 	Email       string
 	Password    string
 	DisplayName string
 	EnergyValue int16
 }
 
-type RegisterOutput struct {
+type RegisterResponse struct {
 	ID          string    `json:"id"`
 	Email       string    `json:"email"`
 	DisplayName string    `json:"display_name"`
@@ -30,7 +30,7 @@ func NewUserRegisterUsecase(r *repository.UserRepository) *UserRegisterUsecase {
 	return &UserRegisterUsecase{repo: r}
 }
 
-func (u *UserRegisterUsecase) Register(ctx context.Context, in RegisterInput) (RegisterOutput, error) {
+func (u *UserRegisterUsecase) Register(ctx context.Context, in RegisterRequest) (RegisterResponse, error) {
 	user := &repository.User{
 		Email:       in.Email,
 		Password:    in.Password,
@@ -42,10 +42,10 @@ func (u *UserRegisterUsecase) Register(ctx context.Context, in RegisterInput) (R
 	}
 
 	if err := u.repo.Create(ctx, user); err != nil {
-		return RegisterOutput{}, err
+		return RegisterResponse{}, err
 	}
 
-	return RegisterOutput{
+	return RegisterResponse{
 		ID:          user.ID,
 		Email:       user.Email,
 		DisplayName: user.DisplayName,

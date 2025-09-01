@@ -31,12 +31,13 @@ func main() {
 	}
 
 	repo := repository.NewUserRepository(db)
+	store := repository.NewPostgresTokenStore(db)
 
 	regUC := usecase.NewUserRegisterUsecase(repo)
 	regH := domain.NewUserRegisterHandler(regUC)
 
 	loginUC := usecase.NewUserLoginUsecase(repo)
-	loginH := domain.NewUserLoginHandler(loginUC)
+	loginH := domain.NewUserLoginHandler(loginUC, store)
 
 	e := router.New(regH, loginH)
 

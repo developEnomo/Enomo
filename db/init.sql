@@ -32,3 +32,13 @@ CREATE TABLE IF NOT EXISTS group_members (
   PRIMARY KEY (group_id, user_id)
 );
 CREATE INDEX IF NOT EXISTS idx_group_members_user ON group_members(user_id);
+
+-- セッション
+CREATE TABLE IF NOT EXISTS sessions (
+  token      text PRIMARY KEY,
+  user_id    text NOT NULL,
+  expires_at timestamptz NOT NULL,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_sessions_expires_at ON sessions (expires_at);
+CREATE INDEX IF NOT EXISTS idx_sessions_user_id   ON sessions (user_id);

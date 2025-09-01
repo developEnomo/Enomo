@@ -26,9 +26,12 @@ type Register struct {
 func (h *UserRegisterHandler) Register(c echo.Context) error {
 	var req Register
 	if err := c.Bind(&req); err != nil {
-		return c.JSON(http.StatusBadRequest, echo.Map{"error": "invalid json"})
+		return c.JSON(http.StatusBadRequest, echo.Map{
+			"error":  "invalid json",
+			"detail": err.Error(), // ← これで原因が一撃で分かる
+		})
 	}
-	out, err := h.uc.Register(c.Request().Context(), usecase.RegisterInput{
+	out, err := h.uc.Register(c.Request().Context(), usecase.RegisterRequest{
 		Email:       req.Email,
 		Password:    req.Password,
 		DisplayName: req.DisplayName,
