@@ -16,6 +16,7 @@ import (
 	"enomo/server/internal/usecase"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
+	_ "github.com/lib/pq"
 )
 
 func main() {
@@ -40,14 +41,23 @@ func main() {
 	logoutUC := usecase.NewUserLogoutUsecase(store)
 	makeUC := usecase.NewGroupMakeUsecase(groupRepo, memberRepo)
 	addUC := usecase.NewGroupAddUsecase(memberRepo)
+	listUC := usecase.NewGroupListUsecase(memberRepo, userRepo)
 
 	regH := domain.NewUserRegisterHandler(regUC)
 	loginH := domain.NewUserLoginHandler(loginUC, store)
 	logoutH := domain.NewUserLogoutHandler(logoutUC)
 	makeH := domain.NewGroupMakeHandler(makeUC)
 	addH := domain.NewGroupAddHandler(addUC)
+	listH := domain.NewGroupListHandler(listUC)
 
-	e := router.New(regH, loginH, logoutH, makeH, addH)
+	e := router.New(
+		regH,
+		loginH,
+		logoutH,
+		makeH,
+		addH,
+		listH,
+	)
 
 	go func() {
 		if err := e.Start(":" + port); err != nil && err != http.ErrServerClosed {

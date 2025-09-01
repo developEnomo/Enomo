@@ -4,6 +4,8 @@ import (
 	"context"
 	"database/sql"
 	"time"
+
+	pq "github.com/lib/pq"
 )
 
 type User struct {
@@ -41,4 +43,29 @@ func (r *UserRepository) FindByEmail(ctx context.Context, email string) (*User, 
 		return nil, err
 	}
 	return &u, nil
+}
+
+func (r *UserRepository) FindByIDs(ctx context.Context, ids []string) ([]*User, error) {
+	if len(ids) == 0 {
+		return nil, nil
+	}
+	rows, err := r.DB.QueryContext(ctx, `
+		SELECT id, email, display_name, energy_value, created_at, updated_at
+		FROM users
+		WHERE id = ANY($1)
+	`, pq.Array(ids))
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var out []*User
+	for rows.Next() {
+		var u User
+		if err := rows.Scan(&u.ID, &u.Email, &u.DisplayName, &u.EnergyValue, &u.CreatedAt, &u.UpdatedAt); err != nil {
+			return nil, err
+		}
+		out = append(out, &u)
+	}
+	return out, rows.Err()
 }

@@ -13,6 +13,7 @@ func New(
 	logout *domain.UserLogoutHandler,
 	groupMake *domain.GroupMakeHandler,
 	groupAdd *domain.GroupAddHandler,
+	groupList *domain.GroupListHandler,
 ) *echo.Echo {
 	e := echo.New()
 	e.Use(middleware.Recover())
@@ -25,6 +26,7 @@ func New(
 
 	api.POST("/groups/make", groupMake.Make)
 	api.POST("/groups/add", groupAdd.Add)
+	api.GET("/groups/list", groupList.List)
 
 	return e
 }
