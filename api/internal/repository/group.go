@@ -33,3 +33,12 @@ func (r *GroupRepository) Create(ctx context.Context, g *Group) error {
 		RETURNING id, created_at
 	`, g.Name, g.OwnerID, track).Scan(&g.ID, &g.CreatedAt)
 }
+
+func (r *GroupRepository) Delete(ctx context.Context, id string) (int64, error) {
+	res, err := r.DB.ExecContext(ctx, `DELETE FROM groups WHERE id = $1`, id)
+	if err != nil {
+		return 0, err
+	}
+	n, _ := res.RowsAffected()
+	return n, nil
+}
