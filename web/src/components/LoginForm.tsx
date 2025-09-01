@@ -47,7 +47,7 @@ export default function LoginForm() {
             ログインする
           </Button>
         </div>
-        <Link href="/register" className="text-sm text-[#861F6D] mt-2 mb-2 underline">
+        <Link href="/register" className="text-sm text-[#861F6D] mt-2 mb-2 underline hover:text-[#F66FD4]">
           新規登録はこちら
         </Link>
       </div>
