@@ -41,7 +41,7 @@ export default function Input({ label, type, placeholder }: InputProps) {
         {type === 'password' && (
           // 目のアイコンをクリックすると表示が切り替わる
           <button type="button" onClick={togglePasswordVisibility} className="absolute inset-y-0 right-0 flex items-center pr-3 text-[#C73BA4]">
-            {isPasswordVisible ? <HiEyeOff className="h-5 w-5" /> : <HiEye className="h-5 w-5" />}
+            {isPasswordVisible ? <HiEye className="h-5 w-5" /> : <HiEyeOff className="h-5 w-5" />}
           </button>
         )}
       </div>
