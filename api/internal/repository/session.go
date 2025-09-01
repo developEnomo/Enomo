@@ -11,6 +11,9 @@ type TokenStore interface {
 	Get(token string) (userID string, ok bool, err error)
 	Delete(token string) error
 	CleanupExpired(ctx context.Context) error
+
+	FindActiveByUser(ctx context.Context, userID string) (token string, ok bool, err error)
+	Renew(token string, ttl time.Duration) error
 }
 
 type PostgresTokenStore struct{ DB *sql.DB }
@@ -51,5 +54,33 @@ func (s *PostgresTokenStore) Delete(token string) error {
 
 func (s *PostgresTokenStore) CleanupExpired(ctx context.Context) error {
 	_, err := s.DB.ExecContext(ctx, `DELETE FROM sessions WHERE expires_at < now()`)
+	return err
+}
+
+func (s *PostgresTokenStore) FindActiveByUser(ctx context.Context, userID string) (string, bool, error) {
+	var token string
+	var exp time.Time
+	err := s.DB.QueryRowContext(ctx, `
+		SELECT token, expires_at
+		FROM sessions
+		WHERE user_id = $1 AND expires_at > now()
+		ORDER BY expires_at DESC
+		LIMIT 1
+	`, userID).Scan(&token, &exp)
+	if err == sql.ErrNoRows {
+		return "", false, nil
+	}
+	if err != nil {
+		return "", false, err
+	}
+	return token, true, nil
+}
+
+func (s *PostgresTokenStore) Renew(token string, ttl time.Duration) error {
+	_, err := s.DB.Exec(`
+		UPDATE sessions
+		SET expires_at = $2
+		WHERE token = $1
+	`, token, time.Now().Add(ttl))
 	return err
 }

@@ -58,16 +58,32 @@ func (h *UserLoginHandler) Login(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "login failed"})
 	}
 
-	token := newSessionToken()
-	if err := h.store.Set(token, out.ID, 60*time.Minute); err != nil {
-		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "session save failed"})
+	ctx := c.Request().Context()
+	const ttl = 60 * time.Minute
+
+	if exist, ok, _ := h.store.FindActiveByUser(ctx, out.ID); ok {
+		_ = h.store.Renew(exist, ttl)
+		c.SetCookie(&http.Cookie{
+			Name:     "session_token",
+			Value:    exist,
+			Path:     "/",
+			MaxAge:   int(ttl.Seconds()),
+			HttpOnly: true,
+			Secure:   isHTTPS(c),
+			SameSite: http.SameSiteLaxMode,
+		})
+		return c.JSON(http.StatusOK, out)
 	}
 
+	token := newSessionToken()
+	if err := h.store.Set(token, out.ID, ttl); err != nil {
+		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "session save failed"})
+	}
 	c.SetCookie(&http.Cookie{
 		Name:     "session_token",
 		Value:    token,
 		Path:     "/",
-		MaxAge:   int((60 * time.Minute).Seconds()),
+		MaxAge:   int(ttl.Seconds()),
 		HttpOnly: true,
 		Secure:   isHTTPS(c),
 		SameSite: http.SameSiteLaxMode,
