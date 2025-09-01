@@ -30,19 +30,21 @@ func main() {
 		log.Fatal(err)
 	}
 
-	repo := repository.NewUserRepository(db)
+	userRepo := repository.NewUserRepository(db)
+	groupRepo := repository.NewGroupRepository(db)
 	store := repository.NewPostgresTokenStore(db)
 
-	regUC := usecase.NewUserRegisterUsecase(repo)
-	regH := domain.NewUserRegisterHandler(regUC)
-
-	loginUC := usecase.NewUserLoginUsecase(repo)
-	loginH := domain.NewUserLoginHandler(loginUC, store)
-
+	regUC := usecase.NewUserRegisterUsecase(userRepo)
+	loginUC := usecase.NewUserLoginUsecase(userRepo)
 	logoutUC := usecase.NewUserLogoutUsecase(store)
-	logoutH := domain.NewUserLogoutHandler(logoutUC)
+	makeUC := usecase.NewGroupMakeUsecase(groupRepo)
 
-	e := router.New(regH, loginH, logoutH)
+	regH := domain.NewUserRegisterHandler(regUC)
+	loginH := domain.NewUserLoginHandler(loginUC, store)
+	logoutH := domain.NewUserLogoutHandler(logoutUC)
+	makeH := domain.NewGroupMakeHandler(makeUC)
+
+	e := router.New(regH, loginH, logoutH, makeH)
 
 	go func() {
 		if err := e.Start(":" + port); err != nil && err != http.ErrServerClosed {

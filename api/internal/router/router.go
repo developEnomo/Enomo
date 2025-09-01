@@ -11,6 +11,7 @@ func New(
 	reg *domain.UserRegisterHandler,
 	login *domain.UserLoginHandler,
 	logout *domain.UserLogoutHandler,
+	make *domain.GroupMakeHandler,
 ) *echo.Echo {
 	e := echo.New()
 	e.Use(middleware.Recover())
@@ -20,6 +21,8 @@ func New(
 	api.POST("/users/register", reg.Register)
 	api.POST("/users/login", login.Login)
 	api.POST("/users/logout", logout.Logout)
+
+	api.POST("/groups/make", make.Make)
 
 	return e
 }
