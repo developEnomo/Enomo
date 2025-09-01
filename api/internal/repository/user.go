@@ -18,7 +18,9 @@ type User struct {
 
 type UserRepository struct{ DB *sql.DB }
 
-func NewUserRepository(db *sql.DB) *UserRepository { return &UserRepository{DB: db} }
+func NewUserRepository(db *sql.DB) *UserRepository {
+	return &UserRepository{DB: db}
+}
 
 func (r *UserRepository) Create(ctx context.Context, u *User) error {
 	return r.DB.QueryRowContext(ctx, `

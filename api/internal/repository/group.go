@@ -16,7 +16,9 @@ type Group struct {
 
 type GroupRepository struct{ DB *sql.DB }
 
-func NewGroupRepository(db *sql.DB) *GroupRepository { return &GroupRepository{DB: db} }
+func NewGroupRepository(db *sql.DB) *GroupRepository {
+	return &GroupRepository{DB: db}
+}
 
 func (r *GroupRepository) Create(ctx context.Context, g *Group) error {
 	var track interface{}

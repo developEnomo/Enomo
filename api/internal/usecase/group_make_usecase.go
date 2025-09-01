@@ -2,10 +2,11 @@ package usecase
 
 import (
 	"context"
-	"enomo/server/internal/repository"
 	"errors"
 	"strings"
 	"time"
+
+	"enomo/server/internal/repository"
 )
 
 type GroupMakeRequest struct {
@@ -23,11 +24,12 @@ type GroupMakeResponse struct {
 }
 
 type GroupMakeUsecase struct {
-	repo *repository.GroupRepository
+	groups  *repository.GroupRepository
+	members *repository.GroupMemberRepository
 }
 
-func NewGroupMakeUsecase(r *repository.GroupRepository) *GroupMakeUsecase {
-	return &GroupMakeUsecase{repo: r}
+func NewGroupMakeUsecase(g *repository.GroupRepository, m *repository.GroupMemberRepository) *GroupMakeUsecase {
+	return &GroupMakeUsecase{groups: g, members: m}
 }
 
 func (u *GroupMakeUsecase) Make(ctx context.Context, in GroupMakeRequest) (GroupMakeResponse, error) {
@@ -38,14 +40,20 @@ func (u *GroupMakeUsecase) Make(ctx context.Context, in GroupMakeRequest) (Group
 	if strings.TrimSpace(in.OwnerID) == "" {
 		return GroupMakeResponse{}, errors.New("owner_id required")
 	}
+
 	g := &repository.Group{
 		Name:    name,
 		OwnerID: in.OwnerID,
 		TrackID: in.TrackID,
 	}
-	if err := u.repo.Create(ctx, g); err != nil {
+	if err := u.groups.Create(ctx, g); err != nil {
 		return GroupMakeResponse{}, err
 	}
+
+	if err := u.members.Add(ctx, g.ID, in.OwnerID, true); err != nil {
+		return GroupMakeResponse{}, err
+	}
+
 	return GroupMakeResponse{
 		ID:        g.ID,
 		Name:      g.Name,
