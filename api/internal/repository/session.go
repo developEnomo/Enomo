@@ -14,6 +14,7 @@ type TokenStore interface {
 
 	FindActiveByUser(ctx context.Context, userID string) (token string, ok bool, err error)
 	Renew(token string, ttl time.Duration) error
+	DeleteByUser(ctx context.Context, userID string) (int64, error)
 }
 
 type PostgresTokenStore struct{ DB *sql.DB }
@@ -83,4 +84,13 @@ func (s *PostgresTokenStore) Renew(token string, ttl time.Duration) error {
 		WHERE token = $1
 	`, token, time.Now().Add(ttl))
 	return err
+}
+
+func (s *PostgresTokenStore) DeleteByUser(ctx context.Context, userID string) (int64, error) {
+	res, err := s.DB.ExecContext(ctx, `DELETE FROM sessions WHERE user_id = $1`, userID)
+	if err != nil {
+		return 0, err
+	}
+	n, _ := res.RowsAffected()
+	return n, nil
 }
