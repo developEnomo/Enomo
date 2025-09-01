@@ -18,7 +18,7 @@ export default function LoginForm() {
     <div className="w-full max-w-sm">
       {/* 見出し */}
       <div className="text-center mb-30">
-        <h1 className="text-4xl font-bold">Log In</h1>
+        <h1 className="text-4xl font-bold text-black">Log In</h1>
         <p className="mt-10 text-[#861F6D] font-bold">既存のアカウントでログイン</p>
       </div>
 
