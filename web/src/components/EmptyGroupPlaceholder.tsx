@@ -2,11 +2,11 @@ import Image from 'next/image';
 
 export default function EmptyGroupPlaceholder() {
   return (
-    <div className="text-center text-black mt-20 flex flex-col items-center">
+    <div className="text-center text-gray-500 mt-20 flex flex-col items-center">
     {/* ロゴ画像 */}
       <Image 
-        src="/Images/Iogos/Logo_Enomo_Icon.svg"
-        alt="Enomo Icon"
+        src="/Images/Iogos/logo_gray.svg"
+        alt="Enomo Icon Gray"
         width={70}
         height={95}
         className="mb-8"
