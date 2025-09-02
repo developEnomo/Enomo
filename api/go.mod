@@ -5,6 +5,7 @@ go 1.23.0
 require (
 	github.com/jackc/pgx/v5 v5.7.5
 	github.com/labstack/echo/v4 v4.13.4
+	github.com/lib/pq v1.10.9
 )
 
 require (

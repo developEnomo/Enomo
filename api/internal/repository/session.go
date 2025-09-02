@@ -19,7 +19,9 @@ type TokenStore interface {
 
 type PostgresTokenStore struct{ DB *sql.DB }
 
-func NewPostgresTokenStore(db *sql.DB) *PostgresTokenStore { return &PostgresTokenStore{DB: db} }
+func NewPostgresTokenStore(db *sql.DB) *PostgresTokenStore {
+	return &PostgresTokenStore{DB: db}
+}
 
 func (s *PostgresTokenStore) Set(token, userID string, ttl time.Duration) error {
 	exp := time.Now().Add(ttl)

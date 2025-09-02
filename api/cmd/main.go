@@ -16,6 +16,7 @@ import (
 	"enomo/server/internal/usecase"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
+	_ "github.com/lib/pq"
 )
 
 func main() {
@@ -30,19 +31,36 @@ func main() {
 		log.Fatal(err)
 	}
 
-	repo := repository.NewUserRepository(db)
+	userRepo := repository.NewUserRepository(db)
+	groupRepo := repository.NewGroupRepository(db)
+	memberRepo := repository.NewGroupMemberRepository(db)
 	store := repository.NewPostgresTokenStore(db)
 
-	regUC := usecase.NewUserRegisterUsecase(repo)
-	regH := domain.NewUserRegisterHandler(regUC)
-
-	loginUC := usecase.NewUserLoginUsecase(repo)
-	loginH := domain.NewUserLoginHandler(loginUC, store)
-
+	regUC := usecase.NewUserRegisterUsecase(userRepo)
+	loginUC := usecase.NewUserLoginUsecase(userRepo)
 	logoutUC := usecase.NewUserLogoutUsecase(store)
-	logoutH := domain.NewUserLogoutHandler(logoutUC)
+	makeUC := usecase.NewGroupMakeUsecase(groupRepo, memberRepo)
+	addUC := usecase.NewGroupAddUsecase(memberRepo)
+	listUC := usecase.NewGroupListUsecase(memberRepo, userRepo)
+	delUC := usecase.NewGroupDeleteUsecase(groupRepo)
 
-	e := router.New(regH, loginH, logoutH)
+	regH := domain.NewUserRegisterHandler(regUC)
+	loginH := domain.NewUserLoginHandler(loginUC, store)
+	logoutH := domain.NewUserLogoutHandler(logoutUC)
+	makeH := domain.NewGroupMakeHandler(makeUC)
+	addH := domain.NewGroupAddHandler(addUC)
+	listH := domain.NewGroupListHandler(listUC)
+	delH := domain.NewGroupDeleteHandler(delUC)
+
+	e := router.New(
+		regH,
+		loginH,
+		logoutH,
+		makeH,
+		addH,
+		listH,
+		delH,
+	)
 
 	go func() {
 		if err := e.Start(":" + port); err != nil && err != http.ErrServerClosed {

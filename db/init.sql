@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS groups (
 );
 CREATE INDEX IF NOT EXISTS idx_groups_owner ON groups(owner_id);
 
--- グループユーザの一覧
+-- グループ＆ユーザの一覧
 CREATE TABLE IF NOT EXISTS group_members (
   group_id  UUID NOT NULL REFERENCES groups(id) ON DELETE CASCADE,
   user_id   UUID NOT NULL REFERENCES users(id)  ON DELETE CASCADE,
