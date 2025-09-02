@@ -17,13 +17,13 @@ export default function LoginForm() {
   return (
     <div className="w-full max-w-sm">
       {/* 見出し */}
-      <div className="text-center mb-30">
-        <h1 className="text-4xl font-bold text-black">Log In</h1>
+      <div className="text-center mt-20 mb-20">
+        <h1 className="text-4xl mt-10 mb-10 font-bold text-black">Log In</h1>
         <p className="mt-10 text-[#861F6D] font-bold">既存のアカウントでログイン</p>
       </div>
 
       {/* 入力フォーム */}
-      <div className="mt-20 mb-20 space-y-6">
+      <div className="mt-15 mb-15 space-y-6">
         <Input
           label="メールアドレス"
           type="email"
