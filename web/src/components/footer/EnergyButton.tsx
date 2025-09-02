@@ -29,14 +29,37 @@ const EnergyButton = () => {
         />
       </button>
       {menuOpen && (
-        <div className="flex justify-center items-center border-2 border-[#C73BA4] px-4 py-2 m-4 bg-white rounded-lg">
+        <div className="flex justify-center items-center border-2 border-[#C73BA4] px-4 py-2 m-4 bg-white rounded-lg gap-x-4">
           <button>
-            {" "}
             <Image
               src="/Images/EnergyIcons/Face1.svg"
               width={50}
               height={50}
               alt="face1"
+            />
+          </button>
+          <button>
+            <Image
+              src="/Images/EnergyIcons/Face2.svg"
+              width={50}
+              height={50}
+              alt="face2"
+            />
+          </button>
+          <button>
+            <Image
+              src="/Images/EnergyIcons/Face3.svg"
+              width={50}
+              height={50}
+              alt="face3"
+            />
+          </button>
+          <button>
+            <Image
+              src="/Images/EnergyIcons/Face4.svg"
+              width={50}
+              height={50}
+              alt="face4"
             />
           </button>
         </div>
