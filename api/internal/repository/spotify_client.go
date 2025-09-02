@@ -25,7 +25,7 @@ type SpotifyClient interface {
 	RecommendPopular(ctx context.Context, target AudioFeatures, market string, minPopularity, limit int) ([]Track, error)
 }
 
-// ---- Mock 実装（まずはUI結線を最優先に）
+// ---- Mock
 
 type MockSpotify struct{}
 
