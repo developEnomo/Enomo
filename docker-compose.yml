@@ -1,16 +1,16 @@
 services:
   api:
-    image: golang:1.23
+    build: ./api           
     working_dir: /app
     volumes:
-      - ./api:/app
+      - ./api:/app         
     environment:
       PORT: "8080"
       DATABASE_URL: "postgres://enomo:enomo@db:5432/enomo_dev?sslmode=disable"
     depends_on:
       - db
-    command: ["go", "run", "./cmd"]
-    ports: 
+    command: ["go", "run", "./cmd"]  
+    ports:
       - "8080:8080"
     networks:
       - appnet

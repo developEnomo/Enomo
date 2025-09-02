@@ -1,8 +1,14 @@
-FROM golang:1.22
+# 開発用
+FROM golang:1.23
 
 WORKDIR /app
+
+# 先に go.mod/go.sum だけ入れて依存DL
+COPY go.mod go.sum ./
+RUN go mod download
+
+# 残りのコード
 COPY . .
-RUN go mod tidy
 
 EXPOSE 8080
-CMD ["go", "run", "."]
+CMD ["go", "run", "./cmd"]
