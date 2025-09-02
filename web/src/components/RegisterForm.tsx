@@ -57,7 +57,7 @@ export default function RegisterForm() {
             value={username}
             onChange={(e) => setUsername(e.target.value)}
           />
-          <p className="mt-2 text-xs text-gray-500">ユーザーネームは後から変更できます</p>
+          <p className="mt-2 text-xs text-[#861F6D]">ユーザーネームは後から変更できます</p>
         </div>
         
         {/* 新規登録ボタン */}
