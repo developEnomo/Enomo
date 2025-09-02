@@ -39,6 +39,7 @@ export default function Input({ label, type, placeholder, value, onChange }: Inp
             placeholder:text-gray-400
             focus:outline-none
             focus:ring-0
+            text-black
           "
           required // 入力を必須にする
         />
