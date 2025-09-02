@@ -18,12 +18,12 @@ const EnergyButton = () => {
   const getEnergyImageSrc = () => {
     if (menuOpen) {
       return selected !== null
-        ? `/Images/EnergyIcons/Energy_fill_${selected}.svg`
-        : "/Images/EnergyIcons/Energy_empty_push.svg";
+        ? `/Images/EnergyIcons/Energy_full_${selected}.png`
+        : "/Images/EnergyIcons/Energy_empty_push.png";
     }
     return selected !== null
-      ? `/Images/EnergyIcons/Energy_fill_${selected}.svg`
-      : "/Images/EnergyIcons/Energy_empty.svg";
+      ? `/Images/EnergyIcons/Energy_full_${selected}.png`
+      : "/Images/EnergyIcons/Energy_empty.png";
   };
 
   return (
