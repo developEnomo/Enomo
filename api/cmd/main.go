@@ -31,11 +31,15 @@ func main() {
 		log.Fatal(err)
 	}
 
+	// --- repositories ---
 	userRepo := repository.NewUserRepository(db)
 	groupRepo := repository.NewGroupRepository(db)
 	memberRepo := repository.NewGroupMemberRepository(db)
 	store := repository.NewPostgresTokenStore(db)
+	energyRepo := repository.NewGroupEnergyRepository(db)
+	spotifyClient := repository.NewMockSpotify()
 
+	// --- usecases ---
 	regUC := usecase.NewUserRegisterUsecase(userRepo)
 	loginUC := usecase.NewUserLoginUsecase(userRepo)
 	logoutUC := usecase.NewUserLogoutUsecase(store)
@@ -43,7 +47,9 @@ func main() {
 	addUC := usecase.NewGroupAddUsecase(memberRepo)
 	listUC := usecase.NewGroupListUsecase(memberRepo, userRepo)
 	delUC := usecase.NewGroupDeleteUsecase(groupRepo)
+	recoUC := usecase.NewRecommendationsUsecase(energyRepo, spotifyClient)
 
+	// --- handlers ---
 	regH := domain.NewUserRegisterHandler(regUC)
 	loginH := domain.NewUserLoginHandler(loginUC, store)
 	logoutH := domain.NewUserLogoutHandler(logoutUC)
@@ -51,7 +57,9 @@ func main() {
 	addH := domain.NewGroupAddHandler(addUC)
 	listH := domain.NewGroupListHandler(listUC)
 	delH := domain.NewGroupDeleteHandler(delUC)
+	recoH := domain.NewRecommendationsHandler(recoUC)
 
+	// --- router ---
 	e := router.New(
 		regH,
 		loginH,
@@ -60,8 +68,10 @@ func main() {
 		addH,
 		listH,
 		delH,
+		recoH, 
 	)
 
+	// --- start / graceful shutdown ---
 	go func() {
 		if err := e.Start(":" + port); err != nil && err != http.ErrServerClosed {
 			log.Fatal(err)
