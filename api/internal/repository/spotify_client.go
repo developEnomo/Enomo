@@ -1,57 +1,120 @@
 package repository
 
-import "context"
+import (
+	"context"
+	"math"
+	"math/rand"
+	"time"
+)
 
-// 楽曲特徴量（必要最小限）
+// ---- JSON タグを付けてレスポンスのキーを小文字に統一
+
 type AudioFeatures struct {
-	Energy       float64 // 0..1
-	Tempo        float64 // BPM
-	Danceability float64 // 0..1
-	Valence      float64 // 0..1
-	Popularity   int     // 0..100
+	Energy       float64 `json:"energy"`       // 0..1
+	Tempo        float64 `json:"tempo"`        // BPM
+	Danceability float64 `json:"danceability"` // 0..1
+	Valence      float64 `json:"valence"`      // 0..1
+	Popularity   int     `json:"popularity"`   // 0..100
 }
 
 type Track struct {
-	ID          string
-	Name        string
-	Artists     []string
-	PreviewURL  string
-	ExternalURL string
-	ImageURL    string
-	Features    AudioFeatures
+	ID          string        `json:"id"`
+	Name        string        `json:"name"`
+	Artists     []string      `json:"artists"`
+	PreviewURL  string        `json:"preview_url"`
+	ExternalURL string        `json:"external_url"`
+	ImageURL    string        `json:"image_url"`
+	Features    AudioFeatures `json:"features"`
 }
 
 type SpotifyClient interface {
 	RecommendPopular(ctx context.Context, target AudioFeatures, market string, minPopularity, limit int) ([]Track, error)
 }
 
-// ---- Mock
+// ---- Mock 実装：複数曲を返す（ターゲット近傍で特徴を少し揺らす）
 
-type MockSpotify struct{}
+type MockSpotify struct {
+	pool []TrackMeta
+}
 
-func NewMockSpotify() SpotifyClient { return &MockSpotify{} }
+type TrackMeta struct {
+	ID     string
+	Name   string
+	Artist string
+}
+
+func NewMockSpotify() SpotifyClient {
+    pool := []TrackMeta{
+        {ID: "6H1RjVyNruCmrBEWRbJmbA", Name: "Lemon", Artist: "米津玄師"},
+        {ID: "5YqltLsPpxzOkG8u1S0h6Z", Name: "Pretender", Artist: "Official髭男dism"},
+        {ID: "6n7nd5iceYpXVwcx8VPpxF", Name: "アイドル", Artist: "YOASOBI"},
+        {ID: "2Z2pdWl1lK5Xg8Xdeu1TEn", Name: "花束", Artist: "back number"},
+        {ID: "6RxyyxQCkZtYVyKqZdhhmF", Name: "踊", Artist: "Aimer"},
+        {ID: "1X9YHQ1CEV4VpWwfvX2gYd", Name: "夜に駆ける", Artist: "YOASOBI"},
+        {ID: "0yK7Jg6R4O6nH4YwZlEGlB", Name: "紅蓮華", Artist: "LiSA"},
+        {ID: "3Pyox4Om5v5xux8OQkGZQm", Name: "シンデレラボーイ", Artist: "Saucy Dog"},
+        {ID: "0wGXIJtJmwUEDX0z3WsmSf", Name: "残響散歌", Artist: "Aimer"},
+        {ID: "2tGvwE8GcFKwNdaxlK1j9u", Name: "白日", Artist: "King Gnu"},
+    }
+    return &MockSpotify{pool: pool}
+}
 
 func (m *MockSpotify) RecommendPopular(ctx context.Context, target AudioFeatures, market string, minPopularity, limit int) ([]Track, error) {
 	if limit <= 0 {
-		limit = 20
+		limit = 2
 	}
+	// 毎回少し変わるけど、同じ過度の偏りにならない程度に乱数を使う
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+
+	// popularity のベースを高めにしてバラけさせる
+	basePops := []int{92, 88, 85, 83, 80, 78, 75, 73, 70, 68}
+
+	// ターゲット付近に特徴を揺らす関数
+	jitter := func(x, amplitude float64) float64 {
+		// [-amp, +amp] で微調整
+		return clamp01(x + (r.Float64()*2-1)*amplitude)
+	}
+	jitterTempo := func(bpm, amp float64) float64 {
+		return math.Max(60, math.Min(200, bpm+(r.Float64()*2-1)*amp))
+	}
+
 	out := make([]Track, 0, limit)
-	for i := 0; i < limit; i++ {
+	for i := 0; i < limit && i < len(m.pool); i++ {
+		meta := m.pool[i]
+		pop := basePops[i%len(basePops)]
+		if pop < minPopularity {
+			pop = minPopularity + (i % 5) // 少し底上げ
+		}
+		feat := AudioFeatures{
+			Energy:       jitter(target.Energy, 0.08),
+			Tempo:        jitterTempo(target.Tempo, 8),
+			Danceability: jitter(target.Danceability, 0.08),
+			Valence:      jitter(target.Valence, 0.1),
+			Popularity:   pop,
+		}
 		out = append(out, Track{
-			ID:          "3n3Ppam7vgaVa1iaRUc9Lp",
-			Name:        "Popular Mock Song",
-			Artists:     []string{"Mock Artist"},
-			PreviewURL:  "https://p.scdn.co/mp3-preview/mock.mp3",
-			ExternalURL: "https://open.spotify.com/track/3n3Ppam7vgaVa1iaRUc9Lp",
+			ID:          meta.ID,
+			Name:        meta.Name,
+			Artists:     []string{meta.Artist},
+			PreviewURL:  "https://p.scdn.co/mp3-preview/mock.mp3", // 埋め込みの可否は track ID で判断できるのでダミーでOK
+			ExternalURL: "https://open.spotify.com/track/" + meta.ID,
 			ImageURL:    "https://i.scdn.co/image/ab67616d00001e02mock",
-			Features: AudioFeatures{
-				Energy:       target.Energy,
-				Tempo:        target.Tempo,
-				Danceability: 0.65,
-				Valence:      0.5,
-				Popularity:   88,
-			},
+			Features:    feat,
 		})
 	}
-	return out, nil
+	// 件数が pool を超える場合は先頭からループ
+	for len(out) < limit {
+		out = append(out, out[len(out)%cap(out)])
+	}
+	return out[:limit], nil
+}
+
+func clamp01(x float64) float64 {
+	if x < 0 {
+		return 0
+	}
+	if x > 1 {
+		return 1
+	}
+	return x
 }
