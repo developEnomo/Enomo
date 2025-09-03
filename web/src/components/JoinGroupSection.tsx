@@ -17,7 +17,7 @@ const JoinGroupSection = ({ groupId, onGroupIdChange, onSubmit }: Props) => {
                 placeholder="参加するグループIDを入力（○桁）"
                 value={groupId}
                 onChange={onGroupIdChange}
-                className="w-4/5 border-0 border-b-2 border-[#C73BA4] bg-transparent py-1.5 text-black placeholder:text-gray-400 focus:outline-none focus:ring-0 text-center"
+                className="w-4/5 border-0 border-2 border-[#C73BA4] rounded-lg bg-transparent py-1.5 text-black placeholder:text-gray-400 focus:outline-none focus:ring-0 text-center"
             />
             <div className="pt-2 text-center">
                 <Button onClick={onSubmit}>グループに参加する</Button>
