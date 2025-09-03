@@ -29,6 +29,8 @@ func New(
 	api.POST("/groups/add", groupAdd.Add)
 	api.GET("/groups/list", groupList.List)
 	api.POST("/groups/delete", groupDelete.Delete)
+	api.GET("/groups/settings", settings.Get)
+	api.POST("/groups/settings/update", settings.Update)
 
 	return e
 }
