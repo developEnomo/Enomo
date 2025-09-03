@@ -45,6 +45,7 @@ func main() {
 	logoutUC := usecase.NewUserLogoutUsecase(store)
 	glistUC := usecase.NewUserGroupsUsecase(memberRepo)
 	renameUC := usecase.NewUserUpdateDisplayNameUsecase(userRepo)
+	energyUC := usecase.NewUserUpdateEnergyValueUsecase(userRepo)
 	udelUC := usecase.NewUserDeleteUsecase(userRepo, groupRepo)
 	makeUC := usecase.NewGroupMakeUsecase(groupRepo, memberRepo)
 	addUC := usecase.NewGroupAddUsecase(memberRepo)
@@ -59,6 +60,7 @@ func main() {
 	logoutH := domain.NewUserLogoutHandler(logoutUC)
 	glistH := domain.NewUserGroupsHandler(glistUC, store)
 	renameH := domain.NewUserRenameHandler(renameUC, store)
+	energyH := domain.NewUserEnergyHandler(energyUC, store)
 	udelH := domain.NewUserDeleteHandler(udelUC, store)
 	makeH := domain.NewGroupMakeHandler(makeUC)
 	addH := domain.NewGroupAddHandler(addUC)
@@ -74,6 +76,7 @@ func main() {
 		logoutH,
 		glistH,
 		renameH,
+		energyH,
 		udelH,
 		makeH,
 		addH,
