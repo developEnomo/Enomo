@@ -42,3 +42,25 @@ func (r *GroupRepository) Delete(ctx context.Context, id string) (int64, error) 
 	n, _ := res.RowsAffected()
 	return n, nil
 }
+
+
+// 更新頻度を取得
+func (r *GroupRepository) GetRefreshIntervalHours(ctx context.Context, groupID string) (int, error) {
+	var h int
+	err := r.DB.QueryRowContext(ctx, `
+		SELECT refresh_interval_hours
+		  FROM groups
+		 WHERE id = $1
+	`, groupID).Scan(&h)
+	return h, err
+}
+
+// 更新頻度を変更
+func (r *GroupRepository) UpdateRefreshIntervalHours(ctx context.Context, groupID string, hours int) error {
+	_, err := r.DB.ExecContext(ctx, `
+		UPDATE groups
+		   SET refresh_interval_hours = $1
+		 WHERE id = $2
+	`, hours, groupID)
+	return err
+}
