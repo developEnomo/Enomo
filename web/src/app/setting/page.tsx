@@ -7,6 +7,7 @@ import JoinGroupSection from '@/components/JoinGroupSection';
 import CreateGroupSection from '@/components/CreateGroupSection';
 import AccountManagementSection from '@/components/AccountManagementSection';
 import AppLogo from '@/components/AppLogo';
+import Footer from '@/components/footer/Footer';
 
 export default function SettingPage() {
   // --- 状態管理 ---
@@ -58,7 +59,7 @@ export default function SettingPage() {
   };
 
   return (
-    <div className="bg-white min-h-screen">
+    <div className="bg-white min-h-screen pb-40">
       <div className="max-w-md mx-auto px-4">
         <ModalHeader />
         <div className="pt-10">
@@ -90,8 +91,8 @@ export default function SettingPage() {
             onDeleteAccount={handleDeleteAccount}
           />
           
-          <AppLogo />
         </main>
+        <Footer />
       </div>
     </div>
   );
