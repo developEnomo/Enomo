@@ -1,0 +1,10 @@
+@"
+node_modules
+.next
+out
+npm-debug.log*
+yarn.lock
+pnpm-lock.yaml
+.git
+.gitignore
+"@ | Set-Content -NoNewline .\web\.dockerignore
