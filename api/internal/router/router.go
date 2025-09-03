@@ -15,6 +15,8 @@ func New(
 	groupAdd *domain.GroupAddHandler,
 	groupList *domain.GroupListHandler,
 	groupDelete *domain.GroupDeleteHandler,
+	settingsH *domain.GroupSettingsHandler,
+
 ) *echo.Echo {
 	e := echo.New()
 	e.Use(middleware.Recover())
@@ -29,8 +31,8 @@ func New(
 	api.POST("/groups/add", groupAdd.Add)
 	api.GET("/groups/list", groupList.List)
 	api.POST("/groups/delete", groupDelete.Delete)
-	api.GET("/groups/settings", settings.Get)
-	api.POST("/groups/settings/update", settings.Update)
+	api.GET("/groups/settings", settingsH.Get)
+	api.POST("/groups/settings/update", settingsH.Update)
 
 	return e
 }
