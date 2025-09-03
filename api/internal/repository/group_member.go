@@ -52,3 +52,31 @@ func (r *GroupMemberRepository) List(ctx context.Context, groupID string, limit,
 	}
 	return out, rows.Err()
 }
+
+func (r *GroupMemberRepository) Remove(ctx context.Context, groupID, userID string) (int64, error) {
+	res, err := r.DB.ExecContext(ctx, `
+		DELETE FROM group_members
+		WHERE group_id = $1 AND user_id = $2
+	`, groupID, userID)
+	if err != nil {
+		return 0, err
+	}
+	n, _ := res.RowsAffected()
+	return n, nil
+}
+
+func (r *GroupMemberRepository) IsMember(ctx context.Context, groupID, userID string) (bool, bool, error) {
+	var isAdmin bool
+	err := r.DB.QueryRowContext(ctx, `
+		SELECT role
+		  FROM group_members
+		 WHERE group_id = $1 AND user_id = $2
+	`, groupID, userID).Scan(&isAdmin)
+	if err == sql.ErrNoRows {
+		return false, false, nil
+	}
+	if err != nil {
+		return false, false, err
+	}
+	return true, isAdmin, nil
+}
