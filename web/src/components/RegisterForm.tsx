@@ -12,17 +12,37 @@ export default function RegisterForm() {
 
   // フォーム送信時の処理
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault(); // ページの再読み込みを防ぐ
+    e.preventDefault();
     setIsLoading(true);
 
-    // TODO: ここにGoバックエンドへのAPIリクエストを実装します
-    console.log('Submitting:', { email, password, username });
-    
-    // ダミーの待機時間
-    await new Promise(resolve => setTimeout(resolve, 1000)); 
-    
-    alert(`アカウントを登録しました！\nEmail: ${email}\nUsername: ${username}`);
-    setIsLoading(false);
+    console.log("[register] submit start", { email, username });
+
+    try {
+      const response = await fetch("/api/v1/users/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email,
+          password,
+          display_name: username,
+          energy_value: 3,
+        }),
+      });
+
+      const rawBody = await response.clone().text();
+      console.log("[register] status", response.status);
+      console.log("[register] body", rawBody);
+
+      if (!response.ok) throw new Error(rawBody || `HTTP ${response.status}`);
+
+      // 成功時
+      window.location.assign("/login");
+    } catch (err) {
+      console.error("[register] error", err);
+      alert(err instanceof Error ? err.message : String(err));
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -62,8 +82,8 @@ export default function RegisterForm() {
         
         {/* 新規登録ボタン */}
         <div className="pt-8 flex justify-center">
-          <Button>
-            {isLoading ? '登録中...' : '新規登録する'}
+          <Button type="submit" disabled={isLoading} aria-busy={isLoading}>
+            {isLoading ? "登録中..." : "新規登録する"}
           </Button>
         </div>
       </form>
