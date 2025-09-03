@@ -8,7 +8,9 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-type GroupDeleteHandler struct{ uc *usecase.GroupDeleteUsecase }
+type GroupDeleteHandler struct {
+	uc *usecase.GroupDeleteUsecase
+}
 
 func NewGroupDeleteHandler(uc *usecase.GroupDeleteUsecase) *GroupDeleteHandler {
 	return &GroupDeleteHandler{uc: uc}

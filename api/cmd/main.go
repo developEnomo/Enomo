@@ -45,10 +45,11 @@ func main() {
 	logoutUC := usecase.NewUserLogoutUsecase(store)
 	glistUC := usecase.NewUserGroupsUsecase(memberRepo)
 	renameUC := usecase.NewUserUpdateDisplayNameUsecase(userRepo)
+	udelUC := usecase.NewUserDeleteUsecase(userRepo, groupRepo)
 	makeUC := usecase.NewGroupMakeUsecase(groupRepo, memberRepo)
 	addUC := usecase.NewGroupAddUsecase(memberRepo)
 	ulistUC := usecase.NewGroupListUsecase(memberRepo, userRepo)
-	delUC := usecase.NewGroupDeleteUsecase(groupRepo)
+	gdelUC := usecase.NewGroupDeleteUsecase(groupRepo)
 	leaveUC := usecase.NewGroupLeaveUsecase(memberRepo, groupRepo)
 	recoUC := usecase.NewRecommendationsUsecase(energyRepo, spotifyClient)
 
@@ -58,10 +59,11 @@ func main() {
 	logoutH := domain.NewUserLogoutHandler(logoutUC)
 	glistH := domain.NewUserGroupsHandler(glistUC, store)
 	renameH := domain.NewUserRenameHandler(renameUC, store)
+	udelH := domain.NewUserDeleteHandler(udelUC, store)
 	makeH := domain.NewGroupMakeHandler(makeUC)
 	addH := domain.NewGroupAddHandler(addUC)
 	ulistH := domain.NewGroupListHandler(ulistUC)
-	delH := domain.NewGroupDeleteHandler(delUC)
+	gdelH := domain.NewGroupDeleteHandler(gdelUC)
 	leaveH := domain.NewGroupLeaveHandler(leaveUC, store)
 	recoH := domain.NewRecommendationsHandler(recoUC)
 
@@ -72,10 +74,11 @@ func main() {
 		logoutH,
 		glistH,
 		renameH,
+		udelH,
 		makeH,
 		addH,
 		ulistH,
-		delH,
+		gdelH,
 		leaveH,
 		recoH,
 	)

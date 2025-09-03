@@ -85,3 +85,12 @@ func (r *UserRepository) UpdateDisplayName(ctx context.Context, userID, displayN
 	}
 	return &u, nil
 }
+
+func (r *UserRepository) Delete(ctx context.Context, id string) (int64, error) {
+	res, err := r.DB.ExecContext(ctx, `DELETE FROM users WHERE id = $1`, id)
+	if err != nil {
+		return 0, err
+	}
+	n, _ := res.RowsAffected()
+	return n, nil
+}

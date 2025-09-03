@@ -48,3 +48,11 @@ func (r *GroupRepository) OwnerID(ctx context.Context, id string) (string, error
 	err := r.DB.QueryRowContext(ctx, `SELECT owner_id FROM groups WHERE id = $1`, id).Scan(&owner)
 	return owner, err
 }
+
+func (r *GroupRepository) OwnsAny(ctx context.Context, ownerID string) (bool, error) {
+	var exists bool
+	err := r.DB.QueryRowContext(ctx, `
+		SELECT EXISTS(SELECT 1 FROM groups WHERE owner_id = $1)
+	`, ownerID).Scan(&exists)
+	return exists, err
+}
