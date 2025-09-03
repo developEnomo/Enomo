@@ -3,7 +3,7 @@ package usecase
 import (
 	"context"
 
-	"enomo/server/internal/repository"
+	"enomo/api/internal/repository"
 )
 
 type UserLogoutUsecase struct {

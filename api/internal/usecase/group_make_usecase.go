@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"enomo/server/internal/repository"
+	"enomo/api/internal/repository"
 )
 
 type GroupMakeRequest struct {

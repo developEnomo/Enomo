@@ -3,7 +3,7 @@ package usecase
 import (
 	"context"
 	"database/sql"
-	"enomo/server/internal/repository"
+	"enomo/api/internal/repository"
 	"errors"
 	"time"
 )

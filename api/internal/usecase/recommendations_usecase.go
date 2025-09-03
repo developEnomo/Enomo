@@ -5,7 +5,7 @@ import (
 	"math"
 	"sort"
 
-	"enomo/server/internal/repository"
+	"enomo/api/internal/repository"
 )
 
 type RecommendationsInput struct {
