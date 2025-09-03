@@ -74,8 +74,7 @@ func (r *UserRepository) UpdateDisplayName(ctx context.Context, userID, displayN
 	var u User
 	err := r.DB.QueryRowContext(ctx, `
 		UPDATE users
-		   SET display_name = $2,
-		       updated_at   = now()
+		SET display_name = $2
 		WHERE id = $1
 		RETURNING id, email, password, display_name, energy_value, created_at, updated_at
 	`, userID, displayName).

@@ -21,7 +21,6 @@ func New(
 	groupDelete *domain.GroupDeleteHandler,
 	groupLeave *domain.GroupLeaveHandler,
 	reco *domain.RecommendationsHandler,
-
 ) *echo.Echo {
 	e := echo.New()
 	e.Use(middleware.Recover())
