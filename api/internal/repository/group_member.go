@@ -13,8 +13,9 @@ type GroupMember struct {
 	JoinedAt time.Time
 }
 
-type GroupWithCount struct {
+type GroupWithMeta struct {
 	GroupID     string
+	GroupName   string
 	MemberCount int
 }
 
@@ -58,30 +59,34 @@ func (r *GroupMemberRepository) UserList(ctx context.Context, groupID string, li
 	return out, rows.Err()
 }
 
-func (r *GroupMemberRepository) GroupList(ctx context.Context, userID string, limit, offset int) ([]GroupWithCount, error) {
+func (r *GroupMemberRepository) GroupList(ctx context.Context, userID string, limit, offset int) ([]GroupWithMeta, error) {
 	rows, err := r.DB.QueryContext(ctx, `
-		WITH user_groups AS (
-			SELECT DISTINCT group_id
-				FROM group_members
-			WHERE user_id = $1
-			ORDER BY group_id
-			LIMIT $2 OFFSET $3
-		)
-		SELECT ug.group_id, COUNT(m.user_id) AS member_count
-		FROM user_groups ug
-		JOIN group_members m ON m.group_id = ug.group_id
-		GROUP BY ug.group_id
-		ORDER BY ug.group_id
+	WITH user_groups AS (
+	SELECT DISTINCT group_id
+		FROM group_members
+	WHERE user_id = $1
+	ORDER BY group_id
+	LIMIT $2 OFFSET $3
+	)
+	SELECT
+	ug.group_id,
+	g.name,
+	COUNT(m.user_id) AS member_count
+	FROM user_groups ug
+	JOIN groups g             ON g.id = ug.group_id
+	LEFT JOIN group_members m ON m.group_id = ug.group_id
+	GROUP BY ug.group_id, g.name
+	ORDER BY MAX(g.created_at) DESC
 	`, userID, limit, offset)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
-	var out []GroupWithCount
+	var out []GroupWithMeta
 	for rows.Next() {
-		var g GroupWithCount
-		if err := rows.Scan(&g.GroupID, &g.MemberCount); err != nil {
+		var g GroupWithMeta
+		if err := rows.Scan(&g.GroupID, &g.GroupName, &g.MemberCount); err != nil {
 			return nil, err
 		}
 		out = append(out, g)

@@ -23,6 +23,7 @@ type ListUserGroupsRequest struct {
 
 type GroupWithCountDTO struct {
 	GroupID     string `json:"group_id"`
+	Name        string `json:"name"`
 	MemberCount int    `json:"member_count"`
 }
 
@@ -43,6 +44,7 @@ func (u *UserGroupsUsecase) List(ctx context.Context, in ListUserGroupsRequest) 
 	for _, g := range gcs {
 		out = append(out, GroupWithCountDTO{
 			GroupID:     g.GroupID,
+			Name:        g.GroupName,
 			MemberCount: g.MemberCount,
 		})
 	}
