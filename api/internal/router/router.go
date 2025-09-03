@@ -12,6 +12,7 @@ func New(
 	login *domain.UserLoginHandler,
 	logout *domain.UserLogoutHandler,
 	list *domain.UserGroupsHandler,
+	rename *domain.UserRenameHandler,
 	groupMake *domain.GroupMakeHandler,
 	groupAdd *domain.GroupAddHandler,
 	groupList *domain.GroupListHandler,
@@ -29,6 +30,7 @@ func New(
 	api.POST("/users/login", login.Login)
 	api.POST("/users/logout", logout.Logout)
 	api.GET("/users/list", list.List)
+	api.PATCH("/users/rename", rename.Update)
 
 	api.POST("/groups/make", groupMake.Make)
 	api.POST("/groups/add", groupAdd.Add)

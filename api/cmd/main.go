@@ -44,6 +44,7 @@ func main() {
 	loginUC := usecase.NewUserLoginUsecase(userRepo)
 	logoutUC := usecase.NewUserLogoutUsecase(store)
 	glistUC := usecase.NewUserGroupsUsecase(memberRepo)
+	renameUC := usecase.NewUserUpdateDisplayNameUsecase(userRepo)
 	makeUC := usecase.NewGroupMakeUsecase(groupRepo, memberRepo)
 	addUC := usecase.NewGroupAddUsecase(memberRepo)
 	ulistUC := usecase.NewGroupListUsecase(memberRepo, userRepo)
@@ -56,6 +57,7 @@ func main() {
 	loginH := domain.NewUserLoginHandler(loginUC, store)
 	logoutH := domain.NewUserLogoutHandler(logoutUC)
 	glistH := domain.NewUserGroupsHandler(glistUC, store)
+	renameH := domain.NewUserRenameHandler(renameUC, store)
 	makeH := domain.NewGroupMakeHandler(makeUC)
 	addH := domain.NewGroupAddHandler(addUC)
 	ulistH := domain.NewGroupListHandler(ulistUC)
@@ -69,6 +71,7 @@ func main() {
 		loginH,
 		logoutH,
 		glistH,
+		renameH,
 		makeH,
 		addH,
 		ulistH,
