@@ -69,3 +69,43 @@ func (r *UserRepository) FindByIDs(ctx context.Context, ids []string) ([]*User, 
 	}
 	return out, rows.Err()
 }
+
+func (r *UserRepository) UpdateDisplayName(ctx context.Context, userID, displayName string) (*User, error) {
+	var u User
+	err := r.DB.QueryRowContext(ctx, `
+		UPDATE users
+		SET display_name = $2
+		WHERE id = $1
+		RETURNING id, email, password, display_name, energy_value, created_at, updated_at
+	`, userID, displayName).
+		Scan(&u.ID, &u.Email, &u.Password, &u.DisplayName, &u.EnergyValue, &u.CreatedAt, &u.UpdatedAt)
+	if err != nil {
+		return nil, err
+	}
+	return &u, nil
+}
+
+func (r *UserRepository) UpdateEnergyValue(ctx context.Context, userID string, energyValue int16) (*User, error) {
+	var u User
+	err := r.DB.QueryRowContext(ctx, `
+		UPDATE users
+		   SET energy_value = $2,
+		       updated_at   = now()
+		WHERE id = $1
+		RETURNING id, email, password, display_name, energy_value, created_at, updated_at
+	`, userID, energyValue).
+		Scan(&u.ID, &u.Email, &u.Password, &u.DisplayName, &u.EnergyValue, &u.CreatedAt, &u.UpdatedAt)
+	if err != nil {
+		return nil, err
+	}
+	return &u, nil
+}
+
+func (r *UserRepository) Delete(ctx context.Context, id string) (int64, error) {
+	res, err := r.DB.ExecContext(ctx, `DELETE FROM users WHERE id = $1`, id)
+	if err != nil {
+		return 0, err
+	}
+	n, _ := res.RowsAffected()
+	return n, nil
+}

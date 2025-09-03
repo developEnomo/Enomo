@@ -49,7 +49,7 @@ func (u *GroupListUsecase) ListMembers(ctx context.Context, in ListMembersReques
 		in.Offset = 0
 	}
 
-	ms, err := u.members.List(ctx, in.GroupID, in.Limit, in.Offset)
+	ms, err := u.members.UserList(ctx, in.GroupID, in.Limit, in.Offset)
 	if err != nil {
 		return ListMembersResponse{}, err
 	}

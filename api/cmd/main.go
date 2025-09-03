@@ -43,20 +43,30 @@ func main() {
 	regUC := usecase.NewUserRegisterUsecase(userRepo)
 	loginUC := usecase.NewUserLoginUsecase(userRepo)
 	logoutUC := usecase.NewUserLogoutUsecase(store)
+	glistUC := usecase.NewUserGroupsUsecase(memberRepo)
+	renameUC := usecase.NewUserUpdateDisplayNameUsecase(userRepo)
+	energyUC := usecase.NewUserUpdateEnergyValueUsecase(userRepo)
+	udelUC := usecase.NewUserDeleteUsecase(userRepo, groupRepo)
 	makeUC := usecase.NewGroupMakeUsecase(groupRepo, memberRepo)
 	addUC := usecase.NewGroupAddUsecase(memberRepo)
-	listUC := usecase.NewGroupListUsecase(memberRepo, userRepo)
-	delUC := usecase.NewGroupDeleteUsecase(groupRepo)
+	ulistUC := usecase.NewGroupListUsecase(memberRepo, userRepo)
+	gdelUC := usecase.NewGroupDeleteUsecase(groupRepo)
+	leaveUC := usecase.NewGroupLeaveUsecase(memberRepo, groupRepo)
 	recoUC := usecase.NewRecommendationsUsecase(energyRepo, spotifyClient)
 
 	// --- handlers ---
 	regH := domain.NewUserRegisterHandler(regUC)
 	loginH := domain.NewUserLoginHandler(loginUC, store)
 	logoutH := domain.NewUserLogoutHandler(logoutUC)
+	glistH := domain.NewUserGroupsHandler(glistUC, store)
+	renameH := domain.NewUserRenameHandler(renameUC, store)
+	energyH := domain.NewUserEnergyHandler(energyUC, store)
+	udelH := domain.NewUserDeleteHandler(udelUC, store)
 	makeH := domain.NewGroupMakeHandler(makeUC)
 	addH := domain.NewGroupAddHandler(addUC)
-	listH := domain.NewGroupListHandler(listUC)
-	delH := domain.NewGroupDeleteHandler(delUC)
+	ulistH := domain.NewGroupListHandler(ulistUC)
+	gdelH := domain.NewGroupDeleteHandler(gdelUC)
+	leaveH := domain.NewGroupLeaveHandler(leaveUC, store)
 	recoH := domain.NewRecommendationsHandler(recoUC)
 
 	// --- router ---
@@ -64,11 +74,16 @@ func main() {
 		regH,
 		loginH,
 		logoutH,
+		glistH,
+		renameH,
+		energyH,
+		udelH,
 		makeH,
 		addH,
-		listH,
-		delH,
-		recoH, 
+		ulistH,
+		gdelH,
+		leaveH,
+		recoH,
 	)
 
 	// --- start / graceful shutdown ---

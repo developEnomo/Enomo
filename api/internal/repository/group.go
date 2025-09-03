@@ -42,3 +42,17 @@ func (r *GroupRepository) Delete(ctx context.Context, id string) (int64, error) 
 	n, _ := res.RowsAffected()
 	return n, nil
 }
+
+func (r *GroupRepository) OwnerID(ctx context.Context, id string) (string, error) {
+	var owner string
+	err := r.DB.QueryRowContext(ctx, `SELECT owner_id FROM groups WHERE id = $1`, id).Scan(&owner)
+	return owner, err
+}
+
+func (r *GroupRepository) OwnsAny(ctx context.Context, ownerID string) (bool, error) {
+	var exists bool
+	err := r.DB.QueryRowContext(ctx, `
+		SELECT EXISTS(SELECT 1 FROM groups WHERE owner_id = $1)
+	`, ownerID).Scan(&exists)
+	return exists, err
+}
