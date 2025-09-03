@@ -43,6 +43,8 @@ func main() {
 	addUC := usecase.NewGroupAddUsecase(memberRepo)
 	listUC := usecase.NewGroupListUsecase(memberRepo, userRepo)
 	delUC := usecase.NewGroupDeleteUsecase(groupRepo)
+	settingsUC := usecase.NewGroupSettingsUsecase(groupRepo)
+
 
 	regH := domain.NewUserRegisterHandler(regUC)
 	loginH := domain.NewUserLoginHandler(loginUC, store)
@@ -51,6 +53,8 @@ func main() {
 	addH := domain.NewGroupAddHandler(addUC)
 	listH := domain.NewGroupListHandler(listUC)
 	delH := domain.NewGroupDeleteHandler(delUC)
+	settingsH  := domain.NewGroupSettingsHandler(settingsUC)
+
 
 	e := router.New(
 		regH,
@@ -60,6 +64,7 @@ func main() {
 		addH,
 		listH,
 		delH,
+		settingsH, 
 	)
 
 	go func() {
