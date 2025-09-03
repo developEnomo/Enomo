@@ -2,6 +2,7 @@ import GroupPageHeader from '@/components/GroupPageHeader';
 import MusicPlayer from '@/components/MusicPlayer';
 import UpdateCountdown from '@/components/UpdateCountdown';
 import EnergyDisplay from '@/components/EnergyDisplay';
+import Footer from '@/components/footer/Footer';
 
 // ページに渡されるパラメータの型定義
 type PageProps = {
@@ -41,7 +42,7 @@ export default async function GroupPlayPage({ params }: PageProps) {
   const groupData = await getGroupData(groupId);
 
   return (
-    <div className="relative flex flex-col items-center min-h-screen bg-white text-gray-800 pt-20 pb-28">
+    <div className="relative flex flex-col items-center min-h-screen bg-white text-gray-800 pt-20 pb-40">
       {/* ヘッダー */}
       <GroupPageHeader groupId={groupId} groupName={groupData.groupName} />
 
@@ -65,6 +66,7 @@ export default async function GroupPlayPage({ params }: PageProps) {
         ここにそのコンポーネントを配置してください。
         例: <Footer /> 
       */}
+      <Footer />
     </div>
   );
 }

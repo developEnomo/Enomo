@@ -5,6 +5,7 @@ import AppHeader from '@/components/AppHeader';
 import GroupList from '@/components/GroupList';
 import EmptyGroupPlaceholder from '@/components/EmptyGroupPlaceholder';
 import { Group } from '@/types/group';
+import Footer from '@/components/footer/Footer';
 
 // ---開発用のモックデータ---
 // グループがある場合のデータ
@@ -48,7 +49,7 @@ export default function GroupListPage() {
       <div className="pt-20">
         <h1 className="text-4xl font-bold text-center">Group List</h1>
       </div>
-      <main className="pt-10"> {/* ヘッダーの高さ分だけ余白を確保 */}
+      <main className="pt-10 pb-40"> {/* ヘッダーの高さ分だけ余白を確保 */}
         {isLoading ? (
           <p className="text-center mt-10">読み込み中...</p>
         ) : (
@@ -59,6 +60,7 @@ export default function GroupListPage() {
           )
         )}
       </main>
+      <Footer/>
     </div>
   );
 }
