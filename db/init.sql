@@ -20,7 +20,8 @@ CREATE TABLE IF NOT EXISTS groups (
   owner_id      UUID NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
   track_id      TEXT, --spotify track id
   created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
-  refresh_interval_hours SMALLINT NOT NULL DEFAULT 24 CHECK (refresh_interval_hours IN (12,24,48,72,96,120,144,168))  
+  refresh_interval_hours SMALLINT NOT NULL DEFAULT 24 
+    CHECK (refresh_interval_hours IN (12,24,48,72,96,120,144,168))  
 );
 CREATE INDEX IF NOT EXISTS idx_groups_owner ON groups(owner_id);
 
