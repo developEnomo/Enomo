@@ -45,6 +45,11 @@ func main() {
 	delUC := usecase.NewGroupDeleteUsecase(groupRepo)
 	settingsUC := usecase.NewGroupSettingsUsecase(groupRepo)
 
+<<<<<<< HEAD
+=======
+	recoUC := usecase.NewRecommendationsUsecase(energyRepo, spotifyClient)
+
+>>>>>>> develop
 
 	regH := domain.NewUserRegisterHandler(regUC)
 	loginH := domain.NewUserLoginHandler(loginUC, store)
@@ -55,6 +60,11 @@ func main() {
 	delH := domain.NewGroupDeleteHandler(delUC)
 	settingsH  := domain.NewGroupSettingsHandler(settingsUC)
 
+<<<<<<< HEAD
+=======
+	recoH := domain.NewRecommendationsHandler(recoUC)
+
+>>>>>>> develop
 
 	e := router.New(
 		regH,
@@ -65,6 +75,10 @@ func main() {
 		listH,
 		delH,
 		settingsH, 
+<<<<<<< HEAD
+=======
+		recoH, 
+>>>>>>> develop
 	)
 
 	go func() {

@@ -34,5 +34,9 @@ func New(
 	api.GET("/groups/settings", settingsH.Get)
 	api.POST("/groups/settings/update", settingsH.Update)
 
+	api.GET("/groups/settings", settingsH.Get)
+	api.POST("/groups/settings/update", settingsH.Update)
+
+	api.GET("/groups/:groupId/recommendations", reco.Get)
 	return e
 }
