@@ -62,7 +62,7 @@ export default function SettingPage() {
       <div className="max-w-md mx-auto px-4">
         <ModalHeader />
         <div className="pt-10">
-            <h1 className="text-4xl font-bold text-center">Setting</h1>
+            <h1 className="text-4xl text-black font-bold text-center">Setting</h1>
         </div>
         <main className="space-y-10 py-4">
           <UsernameChangeSection
