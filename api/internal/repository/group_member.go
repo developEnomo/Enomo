@@ -13,6 +13,11 @@ type GroupMember struct {
 	JoinedAt time.Time
 }
 
+type GroupWithCount struct {
+	GroupID     string
+	MemberCount int
+}
+
 type GroupMemberRepository struct{ DB *sql.DB }
 
 func NewGroupMemberRepository(db *sql.DB) *GroupMemberRepository {
@@ -29,7 +34,7 @@ func (r *GroupMemberRepository) Add(ctx context.Context, groupID, userID string,
 	return err
 }
 
-func (r *GroupMemberRepository) List(ctx context.Context, groupID string, limit, offset int) ([]GroupMember, error) {
+func (r *GroupMemberRepository) UserList(ctx context.Context, groupID string, limit, offset int) ([]GroupMember, error) {
 	rows, err := r.DB.QueryContext(ctx, `
 		SELECT group_id, user_id, role, joined_at
 		FROM group_members
@@ -53,6 +58,37 @@ func (r *GroupMemberRepository) List(ctx context.Context, groupID string, limit,
 	return out, rows.Err()
 }
 
+func (r *GroupMemberRepository) GroupList(ctx context.Context, userID string, limit, offset int) ([]GroupWithCount, error) {
+	rows, err := r.DB.QueryContext(ctx, `
+		WITH user_groups AS (
+			SELECT DISTINCT group_id
+				FROM group_members
+			WHERE user_id = $1
+			ORDER BY group_id
+			LIMIT $2 OFFSET $3
+		)
+		SELECT ug.group_id, COUNT(m.user_id) AS member_count
+		FROM user_groups ug
+		JOIN group_members m ON m.group_id = ug.group_id
+		GROUP BY ug.group_id
+		ORDER BY ug.group_id
+	`, userID, limit, offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var out []GroupWithCount
+	for rows.Next() {
+		var g GroupWithCount
+		if err := rows.Scan(&g.GroupID, &g.MemberCount); err != nil {
+			return nil, err
+		}
+		out = append(out, g)
+	}
+	return out, rows.Err()
+}
+
 func (r *GroupMemberRepository) Remove(ctx context.Context, groupID, userID string) (int64, error) {
 	res, err := r.DB.ExecContext(ctx, `
 		DELETE FROM group_members
@@ -69,8 +105,8 @@ func (r *GroupMemberRepository) IsMember(ctx context.Context, groupID, userID st
 	var isAdmin bool
 	err := r.DB.QueryRowContext(ctx, `
 		SELECT role
-		  FROM group_members
-		 WHERE group_id = $1 AND user_id = $2
+		FROM group_members
+		WHERE group_id = $1 AND user_id = $2
 	`, groupID, userID).Scan(&isAdmin)
 	if err == sql.ErrNoRows {
 		return false, false, nil

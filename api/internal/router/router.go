@@ -11,6 +11,7 @@ func New(
 	reg *domain.UserRegisterHandler,
 	login *domain.UserLoginHandler,
 	logout *domain.UserLogoutHandler,
+	list *domain.UserGroupsHandler,
 	groupMake *domain.GroupMakeHandler,
 	groupAdd *domain.GroupAddHandler,
 	groupList *domain.GroupListHandler,
@@ -27,6 +28,7 @@ func New(
 	api.POST("/users/register", reg.Register)
 	api.POST("/users/login", login.Login)
 	api.POST("/users/logout", logout.Logout)
+	api.GET("/users/list", list.List)
 
 	api.POST("/groups/make", groupMake.Make)
 	api.POST("/groups/add", groupAdd.Add)
