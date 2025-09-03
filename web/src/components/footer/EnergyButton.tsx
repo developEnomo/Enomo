@@ -1,20 +1,31 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import React from "react";
 
 const EnergyButton = () => {
-  // メニュー開閉状態
   const [menuOpen, setMenuOpen] = useState(false);
-  // 選択されたエナジー（Face番号）
   const [selected, setSelected] = useState<number | null>(null);
 
-  // メニュー開閉トグル
+  // 初回レンダー時に localStorage から選択状態を読み込む
+  useEffect(() => {
+    const stored = localStorage.getItem("selectedFaceId");
+    if (stored !== null) {
+      setSelected(Number(stored));
+    }
+  }, []);
+
+  // 選択されたら localStorage に保存
+  const handleSelect = (faceId: number) => {
+    setSelected(faceId);
+    localStorage.setItem("selectedFaceId", faceId.toString());
+    setMenuOpen(false);
+  };
+
   const EnergyButtonClick = () => {
     setMenuOpen((prev) => !prev);
   };
 
-  // 表示する画像のロジック
   const getEnergyImageSrc = () => {
     if (menuOpen) {
       return selected !== null
@@ -41,13 +52,7 @@ const EnergyButton = () => {
       {menuOpen && (
         <div className="flex justify-center items-center border-2 border-[#C73BA4] px-4 py-2 m-4 bg-white rounded-lg gap-x-4">
           {[1, 2, 3, 4].map((faceId) => (
-            <button
-              key={faceId}
-              onClick={() => {
-                setSelected(faceId);
-                setMenuOpen(false); // 選択後にメニューを閉じる
-              }}
-            >
+            <button key={faceId} onClick={() => handleSelect(faceId)}>
               <Image
                 src={`/Images/EnergyIcons/Face${faceId}.svg`}
                 width={50}
