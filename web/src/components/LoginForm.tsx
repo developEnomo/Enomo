@@ -28,15 +28,15 @@ export default function LoginForm() {
           label="メールアドレス"
           type="email"
           placeholder="メールアドレスを入力"
-          // value={email}
-          // onChange={(e) => setEmail(e.target.value)}
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
         />
         <Input
           label="パスワード"
           type="password"
           placeholder="パスワードを入力"
-          // value={password}
-          // onChange={(e) => setPassword(e.target.value)}
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
         />
       </div>
 
