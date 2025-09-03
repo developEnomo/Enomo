@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	"enomo/server/internal/repository"
+	"enomo/api/internal/repository"
 )
 
 var ErrUserOwnsGroups = errors.New("user owns groups")

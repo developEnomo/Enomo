@@ -1,7 +1,7 @@
 package router
 
 import (
-	"enomo/server/internal/domain"
+	"enomo/api/internal/domain"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -21,6 +21,7 @@ func New(
 	groupDelete *domain.GroupDeleteHandler,
 	groupLeave *domain.GroupLeaveHandler,
 	reco *domain.RecommendationsHandler,
+
 ) *echo.Echo {
 	e := echo.New()
 	e.Use(middleware.Recover())

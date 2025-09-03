@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	"enomo/server/internal/repository"
+	"enomo/api/internal/repository"
 )
 
 type UpdateEnergyValueRequest struct {

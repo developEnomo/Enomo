@@ -1,4 +1,4 @@
-module enomo/server
+module enomo/api
 
 go 1.23.0
 
