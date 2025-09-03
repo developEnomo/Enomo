@@ -5,7 +5,7 @@ import (
 	"errors"
 	"unicode/utf8"
 
-	"enomo/server/internal/repository"
+	"enomo/api/internal/repository"
 )
 
 type UpdateDisplayNameRequest struct {

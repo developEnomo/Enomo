@@ -5,7 +5,7 @@ import (
 	"errors"
 	"time"
 
-	"enomo/server/internal/repository"
+	"enomo/api/internal/repository"
 )
 
 type GroupListUsecase struct {

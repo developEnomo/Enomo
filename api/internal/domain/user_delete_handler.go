@@ -4,8 +4,8 @@ import (
 	"errors"
 	"net/http"
 
-	"enomo/server/internal/repository"
-	"enomo/server/internal/usecase"
+	"enomo/api/internal/repository"
+	"enomo/api/internal/usecase"
 
 	"github.com/labstack/echo/v4"
 )

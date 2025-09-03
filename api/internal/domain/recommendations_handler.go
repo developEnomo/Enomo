@@ -6,7 +6,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 
-	"enomo/server/internal/usecase"
+	"enomo/api/internal/usecase"
 )
 
 type RecommendationsHandler struct {

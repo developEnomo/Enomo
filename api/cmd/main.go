@@ -10,10 +10,10 @@ import (
 	"syscall"
 	"time"
 
-	"enomo/server/internal/domain"
-	"enomo/server/internal/repository"
-	"enomo/server/internal/router"
-	"enomo/server/internal/usecase"
+	"enomo/api/internal/domain"
+	"enomo/api/internal/repository"
+	"enomo/api/internal/router"
+	"enomo/api/internal/usecase"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
 	_ "github.com/lib/pq"

@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"enomo/server/internal/usecase"
+	"enomo/api/internal/usecase"
 
 	"github.com/labstack/echo/v4"
 )

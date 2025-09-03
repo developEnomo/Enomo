@@ -3,7 +3,7 @@ package domain
 import (
 	"net/http"
 
-	"enomo/server/internal/usecase"
+	"enomo/api/internal/usecase"
 
 	"github.com/labstack/echo/v4"
 )
