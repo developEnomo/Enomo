@@ -71,7 +71,7 @@ export default function GroupManagementPage({ params }: PageProps) {
 
   return (
     <div className="bg-white min-h-screen">
-      <div className="px-4 pb-10">
+      <div className="px-4 pb-8">
         
         {/* 1. settingページと同じModalHeaderを使用 */}
         <ModalHeader />
