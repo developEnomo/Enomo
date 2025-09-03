@@ -59,7 +59,7 @@ const CreateGroupSection = ({ groupName, onGroupNameChange, frequency, onFrequen
                 </option>
               ))}
             </select>
-            <span className="text-black">日ごとにプレイリスト更新</span>
+            <span className="text-black">ごとにプレイリスト更新</span>
           </div>
         </div>
       </div>
