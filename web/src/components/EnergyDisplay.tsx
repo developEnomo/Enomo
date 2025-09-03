@@ -2,10 +2,10 @@ import Image from 'next/image';
 
 // 各エナジーレベルに対応する画像パスを定義
 const energyImageMap: { [key: number]: string } = {
-  1: '/Images/EnergyIcons/Energy_fill_1.svg',
-  2: '/Images/EnergyIcons/Energy_fill_2.svg',
-  3: '/Images/EnergyIcons/Energy_fill_3.svg',
-  4: '/Images/EnergyIcons/Energy_fill_4.svg',
+  1: '/Images/EnergyIcons/Energy_full_1.svg',
+  2: '/Images/EnergyIcons/Energy_full_2.svg',
+  3: '/Images/EnergyIcons/Energy_full_3.svg',
+  4: '/Images/EnergyIcons/Energy_full_4.svg',
 };
 
 type EnergyDisplayProps = {
