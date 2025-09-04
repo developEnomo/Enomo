@@ -71,10 +71,11 @@ func (r *GroupRepository) GetRefreshIntervalHours(ctx context.Context, groupID s
 // 更新頻度を変更
 func (r *GroupRepository) UpdateRefreshIntervalHours(ctx context.Context, groupID string, hours int) error {
 	_, err := r.DB.ExecContext(ctx, `
-		UPDATE groups
-		   SET refresh_interval_hours = $1
-		 WHERE id = $2
-	`, hours, groupID)
+UPDATE groups
+   SET refresh_interval_hours = $1,
+       next_refresh_at = refreshed_at + make_interval(hours => $1)
+ WHERE id = $2
+`, hours, groupID)
 	return err
 }
 
@@ -83,8 +84,8 @@ func (r *GroupRepository) FindDueGroups(ctx context.Context, limit int) ([]strin
 	const q = `
 SELECT id
   FROM groups
- WHERE refreshed_at + make_interval(hours => refresh_interval_hours) <= now()
- ORDER BY refreshed_at ASC
+ WHERE next_refresh_at <= now()
+ ORDER BY next_refresh_at ASC
  LIMIT $1;
 `
 	rows, err := r.DB.QueryContext(ctx, q, limit)
@@ -106,10 +107,14 @@ SELECT id
 
 // Refresh実行後にrefreshed_atを刻む
 func (r *GroupRepository) TouchRefreshedAt(ctx context.Context, groupID string) error {
-	_, err := r.DB.ExecContext(ctx, `UPDATE groups SET refreshed_at = now() WHERE id = $1`, groupID)
+	_, err := r.DB.ExecContext(ctx, `
+UPDATE groups
+   SET refreshed_at   = now(),
+       next_refresh_at = now() + make_interval(hours => refresh_interval_hours)
+ WHERE id = $1
+`, groupID)
 	return err
 }
-
 
 // groups.track_id を1曲だけ更新（nilでクリアも可）
 func (r *GroupRepository) UpdateTrackID(ctx context.Context, groupID string, trackID *string) error {

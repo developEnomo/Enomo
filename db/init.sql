@@ -22,11 +22,11 @@ CREATE TABLE IF NOT EXISTS groups (
   created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
   refreshed_at  TIMESTAMPTZ NOT NULL DEFAULT now(), -- 直近の更新時刻
   refresh_interval_hours SMALLINT NOT NULL DEFAULT 24 
-    CHECK (refresh_interval_hours IN (12,24,48,72,96,120,144,168))  
+    CHECK (refresh_interval_hours IN (12,24,48,72,96,120,144,168))  ,
+  next_refresh_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 CREATE INDEX IF NOT EXISTS idx_groups_owner ON groups(owner_id);
-CREATE INDEX IF NOT EXISTS idx_groups_refresh_due
-  ON groups ((refreshed_at + make_interval(hours => refresh_interval_hours)));
+CREATE INDEX IF NOT EXISTS idx_groups_next_refresh_at ON groups(next_refresh_at);
   
 -- グループ＆ユーザの一覧
 CREATE TABLE IF NOT EXISTS group_members (
