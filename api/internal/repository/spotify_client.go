@@ -40,20 +40,19 @@ type TrackMeta struct {
 }
 
 func NewMockSpotify() SpotifyClient {
-	pool := []TrackMeta{
-		{ID: "6H1RjVyNruCmrBEWRbJmbA", Name: "Lemon", Artist: "米津玄師"},
-		{ID: "5YqltLsPpxzOkG8u1S0h6Z", Name: "Pretender", Artist: "Official髭男dism"},
-		{ID: "6n7nd5iceYpXVwcx8VPpxF", Name: "アイドル", Artist: "YOASOBI"},
-		{ID: "2Z2pdWl1lK5Xg8Xdeu1TEn", Name: "花束", Artist: "back number"},
-		{ID: "6RxyyxQCkZtYVyKqZdhhmF", Name: "踊", Artist: "Aimer"},
-		{ID: "1X9YHQ1CEV4VpWwfvX2gYd", Name: "夜に駆ける", Artist: "YOASOBI"},
-		{ID: "0yK7Jg6R4O6nH4YwZlEGlB", Name: "紅蓮華", Artist: "LiSA"},
-		{ID: "3Pyox4Om5v5xux8OQkGZQm", Name: "シンデレラボーイ", Artist: "Saucy Dog"},
-		{ID: "0wGXIJtJmwUEDX0z3WsmSf", Name: "残響散歌", Artist: "Aimer"},
-		{ID: "2tGvwE8GcFKwNdaxlK1j9u", Name: "白日", Artist: "King Gnu"},
-	}
-	return &MockSpotify{pool: pool}
+    pool := []TrackMeta{
+        {ID: "0VjIjW4GlUZAMYd2vXMi3b", Name: "Blinding Lights", Artist: "The Weeknd"},
+        {ID: "6n7nd5iceYpXVwcx8VPpxF", Name: "アイドル", Artist: "YOASOBI"},
+        {ID: "2tGvwE8GcFKwNdaxlK1j9u", Name: "白日", Artist: "King Gnu"},
+        {ID: "1X9YHQ1CEV4VpWwfvX2gYd", Name: "夜に駆ける", Artist: "YOASOBI"},
+        {ID: "4Oun2ylbjFKMPTiaSbbCih", Name: "Pretender", Artist: "Official髭男dism"},
+        {ID: "5vYA1mW9g2Coh1HUFUSmlb", Name: "残響散歌", Artist: "Aimer"},
+        {ID: "2Z2pdWl1lK5Xg8Xdeu1TEn", Name: "花束", Artist: "back number"},
+        {ID: "0W6I02J9xcqK8MtSeosEXb", Name: "紅蓮華", Artist: "LiSA"},
+    }
+    return &MockSpotify{pool: pool}
 }
+
 
 func (m *MockSpotify) RecommendPopular(ctx context.Context, target AudioFeatures, market string, minPopularity, limit int) ([]Track, error) {
 	if limit <= 0 {
