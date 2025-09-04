@@ -37,7 +37,7 @@ func main() {
 	memberRepo := repository.NewGroupMemberRepository(db)
 	store := repository.NewPostgresTokenStore(db)
 	energyRepo := repository.NewGroupEnergyRepository(db)
-	spotifyClient := repository.NewMockSpotify()
+	spotifyClient := repository.NewMockSpotify() // 本番は実Spotifyクライアントに差し替え
 
 	// --- usecases ---
 	regUC := usecase.NewUserRegisterUsecase(userRepo)
@@ -52,9 +52,11 @@ func main() {
 	ulistUC := usecase.NewGroupListUsecase(memberRepo, userRepo)
 	gdelUC := usecase.NewGroupDeleteUsecase(groupRepo)
 	leaveUC := usecase.NewGroupLeaveUsecase(memberRepo, groupRepo)
-	recoUC := usecase.NewRecommendationsUsecase(energyRepo, spotifyClient)
-	settingsUC := usecase.NewGroupSettingsUsecase(groupRepo /*, memberRepo*/)
 
+	recoUC := usecase.NewRecommendationsUsecase(energyRepo, spotifyClient)
+	recoRefreshUC := usecase.NewRecommendationsRefreshUsecase(energyRepo, spotifyClient, groupRepo)
+
+	settingsUC := usecase.NewGroupSettingsUsecase(groupRepo /*, memberRepo*/)
 
 	// --- handlers ---
 	regH := domain.NewUserRegisterHandler(regUC)
@@ -69,9 +71,9 @@ func main() {
 	ulistH := domain.NewGroupListHandler(ulistUC)
 	gdelH := domain.NewGroupDeleteHandler(gdelUC)
 	leaveH := domain.NewGroupLeaveHandler(leaveUC, store)
-	recoH := domain.NewRecommendationsHandler(recoUC)
-	settingsH := domain.NewGroupSettingsHandler(settingsUC)
 
+	recoH := domain.NewRecommendationsHandler(recoUC, recoRefreshUC)
+	settingsH := domain.NewGroupSettingsHandler(settingsUC)
 
 	// --- router ---
 	e := router.New(
