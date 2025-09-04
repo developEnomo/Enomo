@@ -78,6 +78,13 @@ func (r *GroupRepository) UpdateRefreshIntervalHours(ctx context.Context, groupI
 	return err
 }
 
+// Refresh実行後にrefreshed_atを刻む
+func (r *GroupRepository) TouchRefreshedAt(ctx context.Context, groupID string) error {
+	_, err := r.DB.ExecContext(ctx,
+		`UPDATE groups SET refreshed_at = now() WHERE id = $1`, groupID)
+	return err
+}
+
 // groups.track_id を1曲だけ更新（nilでクリアも可）
 func (r *GroupRepository) UpdateTrackID(ctx context.Context, groupID string, trackID *string) error {
 	const q = `UPDATE groups SET track_id = $2 WHERE id = $1;`
@@ -90,3 +97,4 @@ func (r *GroupRepository) UpdateTrackID(ctx context.Context, groupID string, tra
 	}
 	return nil
 }
+
