@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS groups (
   name          TEXT NOT NULL CHECK (length(name) <= 50),
   owner_id      UUID NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
   track_id      TEXT, --spotify track id
-  created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
   refresh_interval_hours SMALLINT NOT NULL DEFAULT 24 
     CHECK (refresh_interval_hours IN (12,24,48,72,96,120,144,168))  
 );
