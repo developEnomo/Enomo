@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
-	"enomo/server/internal/usecase"
+	"enomo/api/internal/usecase"
 )
 
 type GroupSettingsHandler struct{ UC usecase.GroupSettingsUsecase }
