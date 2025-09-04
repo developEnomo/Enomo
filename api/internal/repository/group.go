@@ -77,3 +77,7 @@ func (r *GroupRepository) UpdateRefreshIntervalHours(ctx context.Context, groupI
 	`, hours, groupID)
 	return err
 }
+
+func (r *GroupRepository) GetOwnerID(ctx context.Context, id string) (string, error) {
+	return r.OwnerID(ctx, id)
+}

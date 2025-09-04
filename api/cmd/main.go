@@ -55,23 +55,21 @@ func main() {
 	recoUC := usecase.NewRecommendationsUsecase(energyRepo, spotifyClient)
 	settingsUC := usecase.NewGroupSettingsUsecase(groupRepo /*, memberRepo*/)
 
-
 	// --- handlers ---
 	regH := domain.NewUserRegisterHandler(regUC)
 	loginH := domain.NewUserLoginHandler(loginUC, store)
-	logoutH := domain.NewUserLogoutHandler(logoutUC)
+	logoutH := domain.NewUserLogoutHandler(logoutUC, store)
 	glistH := domain.NewUserGroupsHandler(glistUC, store)
 	renameH := domain.NewUserRenameHandler(renameUC, store)
 	energyH := domain.NewUserEnergyHandler(energyUC, store)
 	udelH := domain.NewUserDeleteHandler(udelUC, store)
-	makeH := domain.NewGroupMakeHandler(makeUC)
-	addH := domain.NewGroupAddHandler(addUC)
+	makeH := domain.NewGroupMakeHandler(makeUC, store)
+	addH := domain.NewGroupAddHandler(addUC, store)
 	ulistH := domain.NewGroupListHandler(ulistUC)
-	gdelH := domain.NewGroupDeleteHandler(gdelUC)
+	gdelH := domain.NewGroupDeleteHandler(gdelUC, store)
 	leaveH := domain.NewGroupLeaveHandler(leaveUC, store)
 	recoH := domain.NewRecommendationsHandler(recoUC)
-	settingsH := domain.NewGroupSettingsHandler(settingsUC)
-
+	settingsH := domain.NewGroupSettingsHandler(settingsUC, store)
 
 	// --- router ---
 	e := router.New(
