@@ -82,3 +82,27 @@ UPDATE groups
 `, hours, groupID)
 	return err
 }
+
+// Refresh実行後にrefreshed_atを刻む
+func (r *GroupRepository) TouchRefreshedAt(ctx context.Context, groupID string) error {
+	_, err := r.DB.ExecContext(ctx, `
+UPDATE groups
+   SET refreshed_at   = now(),
+       next_refresh_at = now() + make_interval(hours => refresh_interval_hours)
+ WHERE id = $1
+`, groupID)
+	return err
+}
+
+// groups.track_id を1曲だけ更新（nilでクリアも可）
+func (r *GroupRepository) UpdateTrackID(ctx context.Context, groupID string, trackID *string) error {
+	const q = `UPDATE groups SET track_id = $2 WHERE id = $1;`
+	res, err := r.DB.ExecContext(ctx, q, groupID, trackID)
+	if err != nil {
+		return err
+	}
+	if n, _ := res.RowsAffected(); n == 0 {
+		return sql.ErrNoRows
+	}
+	return nil
+}
