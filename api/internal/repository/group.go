@@ -77,3 +77,16 @@ func (r *GroupRepository) UpdateRefreshIntervalHours(ctx context.Context, groupI
 	`, hours, groupID)
 	return err
 }
+
+// groups.track_id を1曲だけ更新（nilでクリアも可）
+func (r *GroupRepository) UpdateTrackID(ctx context.Context, groupID string, trackID *string) error {
+	const q = `UPDATE groups SET track_id = $2 WHERE id = $1;`
+	res, err := r.DB.ExecContext(ctx, q, groupID, trackID)
+	if err != nil {
+		return err
+	}
+	if n, _ := res.RowsAffected(); n == 0 {
+		return sql.ErrNoRows
+	}
+	return nil
+}
