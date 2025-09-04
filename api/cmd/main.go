@@ -53,6 +53,8 @@ func main() {
 	gdelUC := usecase.NewGroupDeleteUsecase(groupRepo)
 	leaveUC := usecase.NewGroupLeaveUsecase(memberRepo, groupRepo)
 	recoUC := usecase.NewRecommendationsUsecase(energyRepo, spotifyClient)
+	settingsUC := usecase.NewGroupSettingsUsecase(groupRepo /*, memberRepo*/)
+
 
 	// --- handlers ---
 	regH := domain.NewUserRegisterHandler(regUC)
@@ -68,6 +70,8 @@ func main() {
 	gdelH := domain.NewGroupDeleteHandler(gdelUC)
 	leaveH := domain.NewGroupLeaveHandler(leaveUC, store)
 	recoH := domain.NewRecommendationsHandler(recoUC)
+	settingsH := domain.NewGroupSettingsHandler(settingsUC)
+
 
 	// --- router ---
 	e := router.New(
@@ -84,6 +88,7 @@ func main() {
 		gdelH,
 		leaveH,
 		recoH,
+		settingsH,
 	)
 
 	// --- start / graceful shutdown ---
