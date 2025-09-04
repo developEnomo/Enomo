@@ -83,6 +83,32 @@ UPDATE groups
 	return err
 }
 
+// 期限到来のグループを取得（いま更新すべきもの）
+func (r *GroupRepository) FindDueGroups(ctx context.Context, limit int) ([]string, error) {
+	const q = `
+SELECT id
+  FROM groups
+ WHERE next_refresh_at <= now()
+ ORDER BY next_refresh_at ASC
+ LIMIT $1;
+`
+	rows, err := r.DB.QueryContext(ctx, q, limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var ids []string
+	for rows.Next() {
+		var id string
+		if err := rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		ids = append(ids, id)
+	}
+	return ids, rows.Err()
+}
+
 // Refresh実行後にrefreshed_atを刻む
 func (r *GroupRepository) TouchRefreshedAt(ctx context.Context, groupID string) error {
 	_, err := r.DB.ExecContext(ctx, `

@@ -71,8 +71,8 @@ func main() {
 	ulistH := domain.NewGroupListHandler(ulistUC)
 	gdelH := domain.NewGroupDeleteHandler(gdelUC, store)
 	leaveH := domain.NewGroupLeaveHandler(leaveUC, store)
-	recoH := domain.NewRecommendationsHandler(recoUC)
-	settingsH := domain.NewGroupSettingsHandler(settingsUC)
+	recoH := domain.NewRecommendationsHandler(recoUC, recoRefreshUC)
+	settingsH := domain.NewGroupSettingsHandler(settingsUC, store)
 
 	// --- router ---
 	e := router.New(
