@@ -20,11 +20,14 @@ CREATE TABLE IF NOT EXISTS groups (
   owner_id      UUID NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
   track_id      TEXT, --spotify track id
   created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
+  refreshed_at  TIMESTAMPTZ NOT NULL DEFAULT now(), -- 直近の更新時刻
   refresh_interval_hours SMALLINT NOT NULL DEFAULT 24 
-    CHECK (refresh_interval_hours IN (12,24,48,72,96,120,144,168))  
+    CHECK (refresh_interval_hours IN (12,24,48,72,96,120,144,168))  ,
+  next_refresh_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 CREATE INDEX IF NOT EXISTS idx_groups_owner ON groups(owner_id);
-
+CREATE INDEX IF NOT EXISTS idx_groups_next_refresh_at ON groups(next_refresh_at);
+  
 -- グループ＆ユーザの一覧
 CREATE TABLE IF NOT EXISTS group_members (
   group_id  UUID NOT NULL REFERENCES groups(id) ON DELETE CASCADE,

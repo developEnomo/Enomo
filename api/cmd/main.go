@@ -100,6 +100,12 @@ func main() {
 		}
 	}()
 
+
+	// ★ 自動更新ジョブを起動
+	ctx, cancelJobs := context.WithCancel(context.Background())
+	defer cancelJobs()
+	go startAutoRefresher(ctx, groupRepo, recoRefreshUC)
+
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
 	<-quit
@@ -119,4 +125,41 @@ func getenv(key, fallback string) string {
 		return v
 	}
 	return fallback
+}
+
+// 自動更新ループ：毎分チェックし、期限到来のグループを順に更新
+func startAutoRefresher(ctx context.Context, groupRepo *repository.GroupRepository, refresher usecase.RecommendationsRefreshUsecase) {
+	ticker := time.NewTicker(1 * time.Minute) // チェック間隔。環境変数で可変にしてもOK
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-ticker.C:
+			const batch = 20 // 1回で処理する件数上限（任意）
+			ids, err := groupRepo.FindDueGroups(ctx, batch)
+			if err != nil {
+				log.Printf("[auto-refresh] FindDueGroups error: %v", err)
+				continue
+			}
+			for _, gid := range ids {
+				// 推薦→保存（パラメータは暫定。必要ならグループ別設定に）
+				_, err := refresher.Refresh(ctx, usecase.RecommendationsInput{
+					GroupID:        gid,
+					ValencePreset:  "mid",
+					PopularityBias: 0.7,
+					Market:         "JP",
+					MinPopularity:  60,
+					Limit:          20,
+				})
+				if err != nil {
+					log.Printf("[auto-refresh] Refresh group=%s error: %v", gid, err)
+					continue
+				}
+				// Refresh内で TouchRefreshedAt 済み
+				log.Printf("[auto-refresh] refreshed group=%s", gid)
+			}
+		}
+	}
 }

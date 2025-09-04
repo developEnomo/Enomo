@@ -103,5 +103,11 @@ func (u *recommendationsRefreshUsecase) Refresh(ctx context.Context, in Recommen
 		return repository.Track{}, err
 	}
 
+	//  8) 更新時刻を刻む
+	if err := u.groups.TouchRefreshedAt(ctx, in.GroupID); err != nil {
+	// ここで失敗しても曲は保存済みなので、ログって成功返しでもよい方針ならwrapせず無視もできる
+	return repository.Track{}, err
+}
+
 	return best, nil
 }
