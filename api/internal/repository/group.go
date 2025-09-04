@@ -78,12 +78,38 @@ func (r *GroupRepository) UpdateRefreshIntervalHours(ctx context.Context, groupI
 	return err
 }
 
+// 期限到来のグループを取得（いま更新すべきもの）
+func (r *GroupRepository) FindDueGroups(ctx context.Context, limit int) ([]string, error) {
+	const q = `
+SELECT id
+  FROM groups
+ WHERE refreshed_at + make_interval(hours => refresh_interval_hours) <= now()
+ ORDER BY refreshed_at ASC
+ LIMIT $1;
+`
+	rows, err := r.DB.QueryContext(ctx, q, limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var ids []string
+	for rows.Next() {
+		var id string
+		if err := rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		ids = append(ids, id)
+	}
+	return ids, rows.Err()
+}
+
 // Refresh実行後にrefreshed_atを刻む
 func (r *GroupRepository) TouchRefreshedAt(ctx context.Context, groupID string) error {
-	_, err := r.DB.ExecContext(ctx,
-		`UPDATE groups SET refreshed_at = now() WHERE id = $1`, groupID)
+	_, err := r.DB.ExecContext(ctx, `UPDATE groups SET refreshed_at = now() WHERE id = $1`, groupID)
 	return err
 }
+
 
 // groups.track_id を1曲だけ更新（nilでクリアも可）
 func (r *GroupRepository) UpdateTrackID(ctx context.Context, groupID string, trackID *string) error {
