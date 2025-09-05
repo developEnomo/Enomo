@@ -28,8 +28,19 @@ func (h *GroupMakeHandler) Make(c echo.Context) error {
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, echo.Map{"error": "invalid json"})
 	}
+
+	ck, err := c.Cookie("session_token")
+	if err != nil || ck.Value == "" {
+		return c.JSON(http.StatusUnauthorized, echo.Map{"error": "unauthorized"})
+	}
+	actorID, ok, err := h.store.Get(ck.Value)
+	if err != nil || !ok || actorID == "" {
+		return c.JSON(http.StatusUnauthorized, echo.Map{"error": "invalid session"})
+	}
+
 	out, err := h.uc.Make(c.Request().Context(), usecase.GroupMakeRequest{
 		Name:    req.Name,
+		OwnerID: actorID, // ← ここで Cookie 由来のユーザーIDをセット
 		TrackID: req.TrackID,
 	})
 	if err != nil {
