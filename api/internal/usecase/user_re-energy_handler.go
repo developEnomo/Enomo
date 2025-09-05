@@ -29,8 +29,8 @@ func (u *UserUpdateEnergyValueUsecase) Update(ctx context.Context, in UpdateEner
 	if in.UserID == "" {
 		return UpdateEnergyValueResponse{}, errors.New("user_id required")
 	}
-	if in.EnergyValue <= 0 {
-		return UpdateEnergyValueResponse{}, errors.New("energy_value must be >= 1")
+	if in.EnergyValue < 1 || in.EnergyValue > 4 {
+		return UpdateEnergyValueResponse{}, errors.New("energy_value must be 1 ~ 4")
 	}
 	user, err := u.repo.UpdateEnergyValue(ctx, in.UserID, in.EnergyValue)
 	if err != nil {
