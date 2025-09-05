@@ -16,9 +16,23 @@ const EnergyButton = () => {
   }, []);
 
   // 選択されたら localStorage に保存
-  const handleSelect = (faceId: number) => {
+  const handleSelect = async (faceId: number) => {
     setSelected(faceId);
-    localStorage.setItem("selectedFaceId", faceId.toString());
+
+    // APIに反映
+    const response = await fetch('/api/v1/users/energy', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include', // Cookieのセッションを送る
+      body: JSON.stringify({ energy_value: faceId }),
+    });
+
+    if (!response.ok) {
+      alert('エナジー更新に失敗しました');
+      return;
+    }
+
+    localStorage.setItem('selectedFaceId', String(faceId));
     setMenuOpen(false);
   };
 
