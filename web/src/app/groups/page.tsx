@@ -16,7 +16,7 @@ export default function GroupListPage() {
       setIsLoading(true);
       try {
         // APIエンドポイントにリクエストを送信
-        const response = await fetch('/api/v1/users/list');
+        const response = await fetch('/api/v1/users/list?limit=50&offset=0', { credentials: 'include' });
 
         if (!response.ok) {
           throw new Error(`API error: ${response.status}`);
