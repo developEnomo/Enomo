@@ -30,7 +30,6 @@ func (h *GroupMakeHandler) Make(c echo.Context) error {
 	}
 	out, err := h.uc.Make(c.Request().Context(), usecase.GroupMakeRequest{
 		Name:    req.Name,
-		OwnerID: req.OwnerID,
 		TrackID: req.TrackID,
 	})
 	if err != nil {

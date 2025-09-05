@@ -66,13 +66,13 @@ func main() {
 	renameH := domain.NewUserRenameHandler(renameUC, store)
 	energyH := domain.NewUserEnergyHandler(energyUC, store)
 	udelH := domain.NewUserDeleteHandler(udelUC, store)
-	makeH := domain.NewGroupMakeHandler(makeUC)
-	addH := domain.NewGroupAddHandler(addUC)
+	makeH := domain.NewGroupMakeHandler(makeUC, store)
+	addH := domain.NewGroupAddHandler(addUC, store)
 	ulistH := domain.NewGroupListHandler(ulistUC)
 	gdelH := domain.NewGroupDeleteHandler(gdelUC, store)
 	leaveH := domain.NewGroupLeaveHandler(leaveUC, store)
-	recoH := domain.NewRecommendationsHandler(recoUC)
-	settingsH := domain.NewGroupSettingsHandler(settingsUC)
+	recoH := domain.NewRecommendationsHandler(recoUC, recoRefreshUC)
+	settingsH := domain.NewGroupSettingsHandler(settingsUC, store)
 
 	// --- router ---
 	e := router.New(
