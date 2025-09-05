@@ -63,23 +63,26 @@ const EnergyButton = () => {
         />
       </button>
 
-      {menuOpen && (
-        <div className="flex justify-center items-center border-2 border-[#C73BA4] px-4 py-2 m-4 bg-white rounded-lg gap-x-4">
-          {[1, 2, 3, 4].map((faceId) => (
-            <button key={faceId} onClick={() => handleSelect(faceId)}>
-              <Image
-                src={`/Images/EnergyIcons/Face${faceId}.svg`}
-                width={50}
-                height={50}
-                alt={`face${faceId}`}
-                className={`hover:scale-110 transition-transform ${
-                  selected === faceId ? "ring-2 ring-[#C73BA4] rounded-full" : ""
-                }`}
-              />
-            </button>
-          ))}
-        </div>
-      )}
+   <div
+  className={`flex justify-center items-center border-2 border-[#C73BA4] px-4 py-2 m-4 bg-white rounded-lg gap-x-4
+    transition-all duration-300 ease-out
+    ${menuOpen ? 'opacity-100 scale-100 -translate-y-0 pointer-events-auto' : 'opacity-0 scale-95 translate-y-2 pointer-events-none'}
+  `}
+>
+  {[1, 2, 3, 4].map((faceId) => (
+    <button key={faceId} onClick={() => handleSelect(faceId)}>
+      <Image
+        src={`/Images/EnergyIcons/Face${faceId}.svg`}
+        width={50}
+        height={50}
+        alt={`face${faceId}`}
+        className={`hover:scale-110 transition-transform ${
+          selected === faceId ? "ring-2 ring-[#C73BA4] rounded-full" : ""
+        }`}
+      />
+    </button>
+  ))}
+</div>
     </>
   );
 };
