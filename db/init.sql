@@ -47,3 +47,11 @@ CREATE TABLE IF NOT EXISTS sessions (
 );
 CREATE INDEX IF NOT EXISTS idx_sessions_expires_at ON sessions (expires_at);
 CREATE INDEX IF NOT EXISTS idx_sessions_user_id   ON sessions (user_id);
+
+-- 現在の閲覧グループ
+CREATE TABLE IF NOT EXISTS user_active_groups (
+  user_id    UUID PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+  group_id   UUID NOT NULL REFERENCES groups(id) ON DELETE CASCADE,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_user_active_groups_group ON user_active_groups(group_id);

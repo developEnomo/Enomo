@@ -36,6 +36,7 @@ func main() {
 	groupRepo := repository.NewGroupRepository(db)
 	memberRepo := repository.NewGroupMemberRepository(db)
 	store := repository.NewPostgresTokenStore(db)
+	activeRepo := repository.NewActiveGroupRepository(db)
 	energyRepo := repository.NewGroupEnergyRepository(db)
 	spotifyClient := repository.NewMockSpotify() // 本番は実Spotifyクライアントに差し替え
 
@@ -48,6 +49,7 @@ func main() {
 	renameUC := usecase.NewUserUpdateDisplayNameUsecase(userRepo)
 	energyUC := usecase.NewUserUpdateEnergyValueUsecase(userRepo)
 	udelUC := usecase.NewUserDeleteUsecase(userRepo, groupRepo)
+	nowUC := usecase.NewGroupNowUsecase(activeRepo, memberRepo)
 	makeUC := usecase.NewGroupMakeUsecase(groupRepo, memberRepo)
 	addUC := usecase.NewGroupAddUsecase(memberRepo)
 	ulistUC := usecase.NewGroupListUsecase(memberRepo, userRepo)
@@ -66,6 +68,7 @@ func main() {
 	renameH := domain.NewUserRenameHandler(renameUC, store)
 	energyH := domain.NewUserEnergyHandler(energyUC, store)
 	udelH := domain.NewUserDeleteHandler(udelUC, store)
+	nowH := domain.NewGroupNowHandler(nowUC, store)
 	makeH := domain.NewGroupMakeHandler(makeUC, store)
 	addH := domain.NewGroupAddHandler(addUC, store)
 	ulistH := domain.NewGroupListHandler(ulistUC)
@@ -84,6 +87,7 @@ func main() {
 		renameH,
 		energyH,
 		udelH,
+		nowH,
 		makeH,
 		addH,
 		ulistH,

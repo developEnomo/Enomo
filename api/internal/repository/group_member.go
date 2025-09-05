@@ -121,3 +121,19 @@ func (r *GroupMemberRepository) IsMember(ctx context.Context, groupID, userID st
 	}
 	return true, isAdmin, nil
 }
+
+func (r *GroupMemberRepository) ExistsByUserAndGroup(ctx context.Context, userID, groupID string) (bool, error) {
+	exists, _, err := r.IsMember(ctx, groupID, userID)
+	return exists, err
+}
+
+func (r *GroupMemberRepository) IsAdmin(ctx context.Context, groupID, userID string) (bool, error) {
+	exists, isAdmin, err := r.IsMember(ctx, groupID, userID)
+	if err != nil {
+		return false, err
+	}
+	if !exists {
+		return false, nil
+	}
+	return isAdmin, nil
+}

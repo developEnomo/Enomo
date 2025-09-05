@@ -16,6 +16,7 @@ func New(
 	rename *domain.UserRenameHandler,
 	energy *domain.UserEnergyHandler,
 	delete *domain.UserDeleteHandler,
+	groupNow *domain.GroupNowHandler,
 	groupMake *domain.GroupMakeHandler,
 	groupAdd *domain.GroupAddHandler,
 	groupList *domain.GroupListHandler,
@@ -41,6 +42,9 @@ func New(
 	api.POST("/users/delete", delete.Delete)
 
 	// groups
+	api.POST("/groups/now", groupNow.Set)
+	api.GET("/groups/now", groupNow.Get)
+	api.DELETE("/groups/now", groupNow.Clear)
 	api.POST("/groups/make", groupMake.Make)
 	api.POST("/groups/add", groupAdd.Add)
 	api.GET("/groups/list", groupList.List)

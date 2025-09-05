@@ -8,7 +8,8 @@ db-group_members:
 	docker compose exec db psql -U enomo -d enomo_dev -c "SELECT * FROM group_members"
 db-sessions:
 	docker compose exec db psql -U enomo -d enomo_dev -c "SELECT * FROM sessions"
+db-user_active_groups:
+	docker compose exec db psql -U enomo -d enomo_dev -c "SELECT * FROM user_active_groups"
 
-refresh-web:
-	docker compose restart web
-	docker compose logs -f web
+restart:
+	docker compose up --build -d

@@ -1,20 +1,17 @@
 "use client";
 
-import { useState, useEffect, use } from "react";
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from "react";
 
-// 必要なコンポーネントをインポート
 import ModalHeader from "@/components/ModalHeader";
-import AppLogo from "@/components/AppLogo";
 import GroupIdSection from "@/components/GroupIdSection";
 import GroupSettingsChangeSection from "@/components/GroupSettingsChangeSection";
 import GroupDangerZoneSection from "@/components/GroupDangerZoneSection";
 import Footer from "@/components/footer/Footer";
 
-// 型定義
 type PageProps = {
   params: { groupId: string };
 };
+
 type GroupInfo = {
   id: string;
   name: string;
@@ -23,41 +20,51 @@ type GroupInfo = {
 };
 
 export default function GroupManagementPage({ params }: PageProps) {
-  const router = useRouter();
-  const { groupId } = use(params);
+  const { groupId } = params;
 
-  // 状態管理
+  useEffect(() => {
+    if (!groupId) return;
+    const body = JSON.stringify({ group_id: groupId });
+    fetch("/api/v1/groups/now", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body,
+    });
+  }, [groupId]);
+
   const [groupInfo, setGroupInfo] = useState<GroupInfo | null>(null);
   const [editedGroupName, setEditedGroupName] = useState("");
   const [editedFrequency, setEditedFrequency] = useState("1d");
   const [isLoading, setIsLoading] = useState(true);
 
-  // データ取得
   useEffect(() => {
     const fetchGroupInfo = async () => {
       setIsLoading(true);
-      // ダミーデータ
       const dummyData: GroupInfo = {
         id: groupId,
         name: "ひよこさんチーム",
         updateFrequency: "1d",
         isOwner: true,
       };
-      await new Promise(resolve => setTimeout(resolve, 500));
-
+      await new Promise((resolve) => setTimeout(resolve, 500));
       setGroupInfo(dummyData);
       setEditedGroupName(dummyData.name);
       setEditedFrequency(dummyData.updateFrequency);
       setIsLoading(false);
     };
-
     fetchGroupInfo();
   }, [groupId]);
 
-  // イベントハンドラ
-  const handleUpdateSettings = () => { alert(`設定を更新: ${editedGroupName}`); };
-  const handleLeaveGroup = () => { if (confirm("本当に脱退しますか？")) alert("脱退しました"); };
-  const handleDeleteGroup = () => { if (confirm("本当に削除しますか？")) alert("削除しました"); };
+  const handleUpdateSettings = () => {
+    alert(`設定を更新: ${editedGroupName}`);
+  };
+  const handleLeaveGroup = () => {
+    if (confirm("本当に脱退しますか？")) alert("脱退しました");
+  };
+  const handleDeleteGroup = () => {
+    if (confirm("本当に削除しますか？")) alert("削除しました");
+  };
 
   if (isLoading || !groupInfo) {
     return (
@@ -72,11 +79,8 @@ export default function GroupManagementPage({ params }: PageProps) {
   return (
     <div className="bg-white min-h-screen">
       <div className="px-4 pb-8">
-        
-        {/* 1. settingページと同じModalHeaderを使用 */}
         <ModalHeader />
-        
-        {/* 2. 中央揃えのタイトルを追加 */}
+
         <div className="text-center">
           <h1 className="text-2xl font-bold text-black">{groupInfo.name}</h1>
         </div>
@@ -91,13 +95,14 @@ export default function GroupManagementPage({ params }: PageProps) {
             onFrequencyChange={(e) => setEditedFrequency(e.target.value)}
             onSubmit={handleUpdateSettings}
           />
-          
+
           <GroupDangerZoneSection
             isOwner={groupInfo.isOwner}
             onLeave={handleLeaveGroup}
             onDelete={handleDeleteGroup}
           />
         </main>
+
         <Footer />
       </div>
     </div>
