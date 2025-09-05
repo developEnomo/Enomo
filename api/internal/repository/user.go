@@ -109,3 +109,16 @@ func (r *UserRepository) Delete(ctx context.Context, id string) (int64, error) {
 	n, _ := res.RowsAffected()
 	return n, nil
 }
+
+func (r *UserRepository) FindByID(ctx context.Context, id string) (*User, error) {
+	var u User
+	err := r.DB.QueryRowContext(ctx, `
+		SELECT id, email, display_name, energy_value
+		FROM users
+		WHERE id = $1
+	`, id).Scan(&u.ID, &u.Email, &u.DisplayName, &u.EnergyValue)
+	if err != nil {
+		return nil, err
+	}
+	return &u, nil
+}

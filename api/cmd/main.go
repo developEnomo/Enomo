@@ -40,6 +40,7 @@ func main() {
 	spotifyClient := repository.NewMockSpotify() // 本番は実Spotifyクライアントに差し替え
 
 	// --- usecases ---
+	meUC := usecase.NewUserMeUsecase(userRepo)
 	regUC := usecase.NewUserRegisterUsecase(userRepo)
 	loginUC := usecase.NewUserLoginUsecase(userRepo)
 	logoutUC := usecase.NewUserLogoutUsecase(store)
@@ -52,13 +53,12 @@ func main() {
 	ulistUC := usecase.NewGroupListUsecase(memberRepo, userRepo)
 	gdelUC := usecase.NewGroupDeleteUsecase(groupRepo)
 	leaveUC := usecase.NewGroupLeaveUsecase(memberRepo, groupRepo)
-
 	recoUC := usecase.NewRecommendationsUsecase(energyRepo, spotifyClient)
 	recoRefreshUC := usecase.NewRecommendationsRefreshUsecase(energyRepo, spotifyClient, groupRepo)
-
 	settingsUC := usecase.NewGroupSettingsUsecase(groupRepo /*, memberRepo*/)
 
 	// --- handlers ---
+	meH := domain.NewUserMeHandler(meUC, store)
 	regH := domain.NewUserRegisterHandler(regUC)
 	loginH := domain.NewUserLoginHandler(loginUC, store)
 	logoutH := domain.NewUserLogoutHandler(logoutUC, store)
@@ -76,6 +76,7 @@ func main() {
 
 	// --- router ---
 	e := router.New(
+		meH,
 		regH,
 		loginH,
 		logoutH,
