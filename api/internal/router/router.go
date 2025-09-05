@@ -8,6 +8,7 @@ import (
 )
 
 func New(
+	me *domain.UserMeHandler,
 	reg *domain.UserRegisterHandler,
 	login *domain.UserLoginHandler,
 	logout *domain.UserLogoutHandler,
@@ -30,6 +31,7 @@ func New(
 	api := e.Group("/api/v1")
 
 	// users
+	api.GET("/users/me", me.Me)
 	api.POST("/users/register", reg.Register)
 	api.POST("/users/login", login.Login)
 	api.POST("/users/logout", logout.Logout)
