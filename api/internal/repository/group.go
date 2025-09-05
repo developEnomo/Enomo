@@ -49,6 +49,10 @@ func (r *GroupRepository) OwnerID(ctx context.Context, id string) (string, error
 	return owner, err
 }
 
+func (r *GroupRepository) GetOwnerID(ctx context.Context, id string) (string, error) {
+	return r.OwnerID(ctx, id)
+}
+
 func (r *GroupRepository) OwnsAny(ctx context.Context, ownerID string) (bool, error) {
 	var exists bool
 	err := r.DB.QueryRowContext(ctx, `
@@ -128,4 +132,3 @@ func (r *GroupRepository) UpdateTrackID(ctx context.Context, groupID string, tra
 	}
 	return nil
 }
-

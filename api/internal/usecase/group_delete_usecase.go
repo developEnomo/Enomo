@@ -15,6 +15,7 @@ func NewGroupDeleteUsecase(g *repository.GroupRepository) *GroupDeleteUsecase {
 
 type DeleteGroupRequest struct {
 	GroupID string
+	ActorID string
 }
 
 type DeleteGroupResponse struct {
@@ -22,8 +23,15 @@ type DeleteGroupResponse struct {
 }
 
 func (u *GroupDeleteUsecase) Delete(ctx context.Context, in DeleteGroupRequest) (DeleteGroupResponse, error) {
-	if in.GroupID == "" {
-		return DeleteGroupResponse{}, errors.New("group_id required")
+	if in.GroupID == "" || in.ActorID == "" {
+		return DeleteGroupResponse{}, errors.New("group_id and actor_id required")
+	}
+	ownerID, err := u.groups.GetOwnerID(ctx, in.GroupID)
+	if err != nil {
+		return DeleteGroupResponse{}, err
+	}
+	if ownerID != in.ActorID {
+		return DeleteGroupResponse{}, errors.New("forbidden")
 	}
 	n, err := u.groups.Delete(ctx, in.GroupID)
 	if err != nil {
