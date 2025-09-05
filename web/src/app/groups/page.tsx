@@ -7,37 +7,41 @@ import EmptyGroupPlaceholder from '@/components/EmptyGroupPlaceholder';
 import { Group } from '@/types/group';
 import Footer from '@/components/footer/Footer';
 
-// ---開発用のモックデータ---
-// グループがある場合のデータ
-const mockGroups: Group[] = [
-  { id: '1', name: 'ひよこさんチーム', memberCount: 3 },
-  { id: '2', name: 'ひよこさんチーム', memberCount: 3 },
-  { id: '3', name: 'ひよこさんチーム', memberCount: 3 },
-  { id: '4', name: 'ひよこさんチーム', memberCount: 3 },
-  { id: '5', name: 'ひよこさんチーム', memberCount: 3 },
-];
-
-// グループがない場合のデータ
-const emptyGroups: Group[] = [];
-// ---ここまで---
-
 export default function GroupListPage() {
   const [groups, setGroups] = useState<Group[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // TODO: ここでGoバックエンドからデータをフェッチする
-    // 今はモックデータでシミュレーション
     const fetchGroups = async () => {
       setIsLoading(true);
-      // 2秒待ってからデータをセット
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // グループがある場合とない場合を切り替えてテストできます
-      setGroups(mockGroups); 
-      //setGroups(emptyGroups); 
-      
-      setIsLoading(false);
+      try {
+        // APIエンドポイントにリクエストを送信
+        const response = await fetch('/api/v1/users/list?limit=50&offset=0', { credentials: 'include' });
+
+        if (!response.ok) {
+          throw new Error(`API error: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        // APIのレスポンス（スネークケース）をフロントエンドの型（キャメルケース）に変換
+        if (data.groups && Array.isArray(data.groups)) {
+          const formattedGroups: Group[] = data.groups.map((group: any) => ({
+            id: group.group_id,
+            name: group.name,
+            memberCount: group.member_count,
+          }));
+          setGroups(formattedGroups);
+        } else {
+          setGroups([]); // グループがない場合は空配列をセット
+        }
+
+      } catch (error) {
+        console.error('Failed to fetch groups:', error);
+        setGroups([]); // エラー発生時も空のリストを表示
+      } finally {
+        setIsLoading(false);
+      }
     };
 
     fetchGroups();
