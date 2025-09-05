@@ -25,6 +25,10 @@ func NewRecommendationsHandler(
 func (h *RecommendationsHandler) Get(c echo.Context) error {
 	groupID := c.Param("groupId")
 
+	// --- 埋め込み用フォーマット指定（後方互換のため任意） ---
+	// format=embed または embed=1 が渡された場合は {group_id, track_id} を返す
+	embed := c.QueryParam("format") == "embed" || c.QueryParam("embed") == "1"
+
 	// --- 入力パース ---
 	valence := c.QueryParam("valence")
 	switch valence {
@@ -75,6 +79,19 @@ func (h *RecommendationsHandler) Get(c echo.Context) error {
 			"message": err.Error(),
 		})
 	}
+
+	// --- 埋め込み用フォーマットで返却 ---
+	if embed {
+		if len(out.Tracks) == 0 {
+			return c.NoContent(http.StatusNoContent)
+		}
+		return c.JSON(http.StatusOK, map[string]any{
+			"group_id": out.GroupID,
+			"track_id": out.Tracks[0].ID, // iframe 用に先頭1件の track ID のみ返す
+		})
+	}
+
+	// --- 既存フォーマットのまま返却（後方互換） ---
 	return c.JSON(http.StatusOK, out)
 }
 
