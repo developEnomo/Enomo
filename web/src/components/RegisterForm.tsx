@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Input from './Input';
 import Button from './Button';
+import Link from 'next/link';
 
 export default function RegisterForm() {
   const [email, setEmail] = useState('');
@@ -93,6 +94,11 @@ export default function RegisterForm() {
           </Button>
         </div>
       </form>
+
+        <Link href="/login" className="text-sm text-[#861F6D] mt-2 mb-2 underline hover:text-[#F66FD4] flex justify-center">
+          ログインページへ
+        </Link>
+
     </div>
   );
 }
