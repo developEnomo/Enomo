@@ -12,6 +12,12 @@ export default function GroupListPage() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    const initActiveGroup = async () => {
+      try {
+        await fetch('/api/v1/groups/now', { method: 'DELETE', credentials: 'include' });
+      } catch {}
+    };
+
     const fetchGroups = async () => {
       setIsLoading(true);
       try {
@@ -44,7 +50,7 @@ export default function GroupListPage() {
       }
     };
 
-    fetchGroups();
+    initActiveGroup().finally(fetchGroups);
   }, []);
 
   return (
