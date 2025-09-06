@@ -70,15 +70,22 @@ func (u *recommendationsRefreshUsecase) Refresh(ctx context.Context, in Recommen
 		return repository.Track{}, errors.New("no candidates")
 	}
 
-	// 5) プレビュー有りだけに絞る
-	filtered := make([]repository.Track, 0, len(cands))
+	// 5) プレビュー有りを優先、無ければプレビュー無しでフォールバック（★ここだけ変更）
+	withPrev := make([]repository.Track, 0, len(cands))
+	withoutPrev := make([]repository.Track, 0, len(cands))
 	for _, t := range cands {
 		if t.PreviewURL != "" {
-			filtered = append(filtered, t)
+			withPrev = append(withPrev, t)
+		} else {
+			withoutPrev = append(withoutPrev, t)
 		}
 	}
-	if len(filtered) == 0 {
-		return repository.Track{}, errors.New("no previewable candidates")
+	pool := withPrev
+	if len(pool) == 0 {
+		pool = withoutPrev
+	}
+	if len(pool) == 0 {
+		return repository.Track{}, errors.New("no candidates")
 	}
 
 	// 6) スコアリング（Execute と揃える）
@@ -87,10 +94,10 @@ func (u *recommendationsRefreshUsecase) Refresh(ctx context.Context, in Recommen
 		repository.Track
 		score float64
 	}
-	ss := make([]scored, 0, len(filtered))
-	for _, t := range filtered {
+	ss := make([]scored, 0, len(pool))
+	for _, t := range pool {
 		p := float64(t.Features.Popularity) / 100.0
-		d := featureDistance(t.Features, target) // 0..1 小さいほど良い
+		d := featureDistance(t.Features, target) // 0..1 小さいほど良い（欠損成分は距離計算から除外される実装ならそのまま）
 		score := popBias*p + (1.0-popBias)*(1.0-d)
 		ss = append(ss, scored{Track: t, score: score})
 	}
@@ -103,11 +110,11 @@ func (u *recommendationsRefreshUsecase) Refresh(ctx context.Context, in Recommen
 		return repository.Track{}, err
 	}
 
-	//  8) 更新時刻を刻む
+	// 8) 更新時刻を刻む
 	if err := u.groups.TouchRefreshedAt(ctx, in.GroupID); err != nil {
-	// ここで失敗しても曲は保存済みなので、ログって成功返しでもよい方針ならwrapせず無視もできる
-	return repository.Track{}, err
-}
+		// ここで失敗しても曲は保存済みなので、ポリシー次第ではログだけにして成功返しでもOK
+		return repository.Track{}, err
+	}
 
 	return best, nil
 }
