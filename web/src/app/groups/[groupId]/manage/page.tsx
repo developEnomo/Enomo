@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 import ModalHeader from "@/components/ModalHeader";
 import GroupIdSection from "@/components/GroupIdSection";
@@ -21,6 +22,7 @@ type GroupInfo = {
 
 export default function GroupManagementPage({ params }: PageProps) {
   const { groupId } = params;
+  const router = useRouter();
 
   useEffect(() => {
     if (!groupId) return;
@@ -59,9 +61,32 @@ export default function GroupManagementPage({ params }: PageProps) {
   const handleUpdateSettings = () => {
     alert(`設定を更新: ${editedGroupName}`);
   };
-  const handleLeaveGroup = () => {
-    if (confirm("本当に脱退しますか？")) alert("脱退しました");
+  
+  const handleLeaveGroup = async() => {
+    if (!confirm("本当に脱退しますか？")) return;
+    setIsLoading(true);
+    try {
+      const res = await fetch("/api/v1/groups/leave", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ group_id: groupId }),
+      });
+      if (!res.ok) {
+        const msg = await res.text();
+        alert(`脱退に失敗しました（${res.status}）\n${msg}`);
+        setIsLoading(false);
+        return;
+      }
+      await fetch("/api/v1/groups/now", { method: "DELETE", credentials: "include" });
+      router.push("/groups");
+      router.refresh();
+    } catch {
+      alert("通信エラーが発生しました");
+      setIsLoading(false);
+    }
   };
+
   const handleDeleteGroup = () => {
     if (confirm("本当に削除しますか？")) alert("削除しました");
   };
