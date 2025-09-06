@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, use } from "react";
 import GroupPageHeader from '@/components/GroupPageHeader';
 import MusicPlayer from '@/components/MusicPlayer';
 import UpdateCountdown from '@/components/UpdateCountdown';
@@ -8,51 +8,74 @@ import Footer from '@/components/footer/Footer';
 
 // ページに渡されるパラメータの型定義
 type PageProps = {
-  params: { groupId: string };
+  params: Promise<{ groupId: string }>;
 };
 
 type GroupData = {
   groupName: string;
   spotifyTrackId: string;
-  daysUntilUpdate: number;
+  // `daysUntilUpdate` を `updateIntervalInHours` に変更
+  updateIntervalInHours: number;
   memberEnergyLevels: number[];
 };
 
 export default function GroupDetailPage({ params }: PageProps) {
-  const { groupId } = params;
+  const { groupId } = use(params);
 
   const [data, setData] = useState<GroupData | null>(null);
   const [loading, setLoading] = useState(true);
 
   // アクティブグループ登録
   useEffect(() => {
+    if (!groupId) return;
     const body = JSON.stringify({ group_id: groupId });
     fetch("/api/v1/groups/now", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
-      body,
-    }).catch(() => {});
+      body: body,
+    }).catch((err) => {
+      console.error("Failed to set active group:", err);
+    });
   }, [groupId]);
 
-  // データ取得（必要に応じてBEのAPIに差し替え）
+  // データ取得
   useEffect(() => {
     async function load() {
+      if (!groupId) return;
       setLoading(true);
       try {
-        // TODO: 実APIに置き換える
-        // const res = await fetch(`/api/v1/groups/${groupId}`, { credentials: "include" });
-        // if (!res.ok) throw new Error(String(res.status));
-        // const json = await res.json();
+        const [settingsRes, listRes, recoRes] = await Promise.all([
+          fetch(`/api/v1/groups/settings?group_id=${groupId}`, { credentials: 'include' }),
+          fetch(`/api/v1/groups/list?group_id=${groupId}&limit=50`, { credentials: 'include' }),
+          fetch(`/api/v1/groups/${groupId}/recommendations?limit=1`, { credentials: 'include' })
+        ]);
 
-        const json: GroupData = {
-          groupName: "ひよこさんチーム",
-          spotifyTrackId: "003vvx7Niy0yvhvHt4a68B",
-          daysUntilUpdate: 3,
-          memberEnergyLevels: [4, 2, 1, 3, 4, 3, 2, 1, 4, 3],
-        };
-        setData(json);
-      } catch {
+        if (!settingsRes.ok || !listRes.ok || !recoRes.ok) {
+          throw new Error('Failed to fetch group data');
+        }
+
+        const settingsData = await settingsRes.json();
+        const listData = await listRes.json();
+        const recoData = await recoRes.json();
+        
+        const groupName = settingsData.group_name || "チーム";
+        // 時間をそのまま取得
+        const updateIntervalInHours = settingsData.refresh_interval_hours || 24;
+
+        const memberEnergyLevels = listData.members.map((member: any) => member.energy_value);
+        
+        const spotifyTrackId = recoData.tracks?.[0]?.id ?? "003vvx7Niy0yvhvHt4a68B"; // フォールバック用のID
+
+        setData({
+          groupName,
+          spotifyTrackId,
+          updateIntervalInHours, // 日数ではなく時間をセット
+          memberEnergyLevels,
+        });
+
+      } catch (error) {
+        console.error("Failed to load group data:", error);
         setData(null);
       } finally {
         setLoading(false);
@@ -61,8 +84,12 @@ export default function GroupDetailPage({ params }: PageProps) {
     load();
   }, [groupId]);
 
-  if (loading || !data) {
-    return <div className="p-4">読み込み中...</div>;
+  if (loading) {
+    return <div className="p-4 text-center mt-20 font-bold text-[#C73BA4]">読み込み中...</div>;
+  }
+  
+  if (!data) {
+    return <div className="p-4 text-center mt-20 font-bold text-red-500">グループ情報の取得に失敗しました。</div>;
   }
 
   return (
@@ -73,7 +100,8 @@ export default function GroupDetailPage({ params }: PageProps) {
         <h2 className="text-2xl font-bold">Energy Song</h2>
         <MusicPlayer trackId={data.spotifyTrackId} />
         <div className="w-full flex justify-end">
-          <UpdateCountdown daysLeft={data.daysUntilUpdate} />
+           {/* プロパティ名を変更して時間データを渡す */}
+           <UpdateCountdown updateIntervalInHours={data.updateIntervalInHours} />
         </div>
         <EnergyDisplay energyLevels={data.memberEnergyLevels} />
       </main>
