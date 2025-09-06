@@ -39,45 +39,156 @@ export default function GroupManagementPage({ params }: PageProps) {
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
-    const fetchGroupInfo = async () => {
+    const load = async () => {
       setIsLoading(true);
-      // ダミーデータ
-      const dummyData: GroupInfo = {
-        id: groupId,
-        name: "ひよこさんチーム",
-        updateFrequency: "1d",
-        isOwner: true,
-      };
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      try {
+        // セッション紐付けは fire-and-forget
+        if (groupId) {
+          fetch("/api/v1/groups/now", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            body: JSON.stringify({ group_id: groupId }),
+          }).catch(() => {});
+        }
 
-      setGroupInfo(dummyData);
-      setEditedGroupName(dummyData.name);
-      setEditedFrequency(dummyData.updateFrequency);
-      setIsLoading(false);
+        // 設定取得（8秒で打ち切り）
+        if (!groupId) {
+          // groupId が未解決のままならフォールバック
+          setGroupInfo({ id: "", name: "チーム", updateFrequencyKey: "1d", isOwner: false });
+          return;
+        }
+        const ac = new AbortController();
+        const tm = setTimeout(() => ac.abort(), 8000);
+        const res = await fetch(`/api/v1/groups/settings?group_id=${groupId}`, {
+          credentials: "include",
+          signal: ac.signal,
+        });
+        clearTimeout(tm);
+
+        if (!res.ok) throw new Error(`GET /groups/settings ${res.status}`);
+        const j = await res.json();
+
+        const name = String(j.group_name ?? j.name ?? j.groupName ?? "チーム");
+        const hours = Number(j.refresh_interval_hours ?? j.hours ?? 24);
+
+        const info: GroupInfo = {
+          id: groupId,
+          name,
+          updateFrequencyKey: hoursToKey(hours),
+          isOwner: true, // 必要なら別APIで厳密化
+        };
+        setGroupInfo(info);
+        setEditedGroupName(info.name);
+        setEditedFrequencyKey(info.updateFrequencyKey);
+      } catch (e) {
+        console.error("[manage] load error:", e);
+        // 失敗しても必ずフォールバックをセット
+        setGroupInfo({ id: groupId ?? "", name: "チーム", updateFrequencyKey: "1d", isOwner: false });
+      } finally {
+        // どの経路でもローディングは必ず終了
+        setIsLoading(false);
+      }
     };
-
-    fetchGroupInfo();
+    load();
   }, [groupId]);
 
-  // イベントハンドラ
-  const handleUpdateSettings = () => {
-    alert(`設定を更新: ${editedGroupName}`);
-  };
-  const handleLeaveGroup = () => {
-    if (confirm("本当に脱退しますか？")) alert("脱退しました");
-  };
-  const handleDeleteGroup = () => {
-    if (confirm("本当に削除しますか？")) alert("削除しました");
+  const handleSave = async () => {
+    if (!groupInfo) return;
+    setIsSaving(true);
+    try {
+      const payload = {
+        group_id: groupInfo.id,
+        group_name: editedGroupName,
+        refresh_interval_hours: keyToHours[editedFrequencyKey],
+      };
+      const res = await fetch("/api/v1/groups/settings/update", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(payload),
+      });
+      const text = await res.text();
+      if (!res.ok) {
+        alert(`更新に失敗しました（${res.status}）\n${text}`);
+        return;
+      }
+      setGroupInfo(prev => prev ? { ...prev, name: editedGroupName, updateFrequencyKey: editedFrequencyKey } : prev);
+      alert("保存しました");
+      router.refresh();
+    } catch {
+      alert("通信エラーが発生しました");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
-  if (isLoading || !groupInfo) {
+  const handleLeaveGroup = async () => {
+    if (!confirm("本当に脱退しますか？")) return;
+    setIsLoading(true);
+    try {
+      const res = await fetch("/api/v1/groups/leave", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ group_id: groupId }),
+      });
+      if (!res.ok) {
+        const msg = await res.text();
+        alert(`脱退に失敗しました（${res.status}）\n${msg}`);
+        setIsLoading(false);
+        return;
+      }
+      await fetch("/api/v1/groups/now", { method: "DELETE", credentials: "include" });
+      router.push("/groups");
+      router.refresh();
+    } catch {
+      alert("通信エラーが発生しました");
+      setIsLoading(false);
+    }
+  };
+
+  const handleDeleteGroup = async () => {
+    if (!confirm("本当に削除しますか？この操作は元に戻せません。")) return;
+    setIsLoading(true);
+    try {
+      const res = await fetch("/api/v1/groups/delete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ group_id: groupId }),
+      });
+      if (!res.ok) {
+        const msg = await res.text();
+        alert(`削除に失敗しました（${res.status}）\n${msg}`);
+        setIsLoading(false);
+        return;
+      }
+      await fetch("/api/v1/groups/now", { method: "DELETE", credentials: "include" });
+      router.push("/groups");
+      router.refresh();
+    } catch {
+      alert("通信エラーが発生しました");
+      setIsLoading(false);
+    }
+  };
+
+  // ← ここを "isLoading のみ" に変更（!groupInfo に依存しない）
+  if (isLoading) {
     return (
       <div className="fixed inset-0 bg-white bg-opacity-50 flex items-center justify-center">
         <div className="bg-white rounded-lg p-4">
-          <p className="text-center mt-10 font-bold text-[#C73BA4]">
-            Loading...
-          </p>
+          <p className="text-center mt-10 font-bold text-[#C73BA4]">Loading...</p>
         </div>
+      </div>
+    );
+  }
+
+  // ロード終了時に groupInfo が null のままは想定外なので安全側
+  if (!groupInfo) {
+    return (
+      <div className="p-6">
+        <p>データの読み込みに失敗しました。リロードしてください。</p>
       </div>
     );
   }
@@ -85,10 +196,7 @@ export default function GroupManagementPage({ params }: PageProps) {
   return (
     <div className="bg-white min-h-screen">
       <div className="px-4 pb-8">
-        {/* 1. settingページと同じModalHeaderを使用 */}
         <ModalHeader />
-
-        {/* 2. 中央揃えのタイトルを追加 */}
         <div className="text-center">
           <h1 className="text-2xl font-bold text-black">{groupInfo.name}</h1>
         </div>
@@ -106,8 +214,8 @@ export default function GroupManagementPage({ params }: PageProps) {
 
           <GroupDangerZoneSection
             isOwner={groupInfo.isOwner}
-            onLeave={handleLeave}
-            onDelete={handleDelete}
+            onLeave={handleLeaveGroup}
+            onDelete={handleDeleteGroup}
           />
         </main>
 
