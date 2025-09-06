@@ -9,92 +9,70 @@ import GroupSettingsChangeSection from "@/components/GroupSettingsChangeSection"
 import GroupDangerZoneSection from "@/components/GroupDangerZoneSection";
 import Footer from "@/components/footer/Footer";
 
-type PageProps = {
-  params: Promise<{ groupId: string }>;
-};
+type PageProps = { params: Promise<{ groupId: string }> };
+
+type FrequencyKey = "12h" | "1d" | "2d" | "3d" | "4d" | "5d" | "6d" | "7d";
 
 type GroupInfo = {
   id: string;
   name: string;
-  updateFrequency: string;
+  updateFrequencyKey: FrequencyKey;
   isOwner: boolean;
+};
+
+const keyToHours: Record<FrequencyKey, number> = {
+  "12h": 12, "1d": 24, "2d": 48, "3d": 72, "4d": 96, "5d": 120, "6d": 144, "7d": 168,
+};
+const hoursToKey = (h?: number): FrequencyKey => {
+  const m: Record<number, FrequencyKey> = { 12:"12h",24:"1d",48:"2d",72:"3d",96:"4d",120:"5d",144:"6d",168:"7d" };
+  return m[h ?? 24] ?? "1d";
 };
 
 export default function GroupManagementPage({ params }: PageProps) {
   const { groupId } = use(params);
   const router = useRouter();
 
+  const [groupInfo, setGroupInfo] = useState<GroupInfo | null>(null);
+  const [editedGroupName, setEditedGroupName] = useState("");
+  const [editedFrequencyKey, setEditedFrequencyKey] = useState<FrequencyKey>("1d");
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+
   useEffect(() => {
     if (!groupId) return;
-    const body = JSON.stringify({ group_id: groupId });
     fetch("/api/v1/groups/now", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
-      body,
-    });
+      body: JSON.stringify({ group_id: groupId }),
+    }).catch(() => {});
   }, [groupId]);
-
-  const [groupInfo, setGroupInfo] = useState<GroupInfo | null>(null);
-  const [editedGroupName, setEditedGroupName] = useState("");
-  const [editedFrequency, setEditedFrequency] = useState("1d");
-  const [isLoading, setIsLoading] = useState(true);
-
-  //日時変換
-  const hoursToFreq = (h?: number) => {
-    if (!h) return "1d";
-    if (h === 24) return "1d";
-    if (h === 72) return "3d";
-    if (h === 168) return "7d";
-    return `${h}h`;
-  };
 
   useEffect(() => {
     const load = async () => {
       setIsLoading(true);
       try {
-        // 設定情報
-        const res = await fetch(`/api/v1/groups/settings?group_id=${groupId}`, {
-          credentials: "include",
-        });
+        const res = await fetch(`/api/v1/groups/settings?group_id=${groupId}`, { credentials: "include" });
         if (!res.ok) throw new Error(String(res.status));
-        const json = await res.json();
+        const j = await res.json();
 
-        // ★ ここがポイント：まず settings から、無ければ users/list から名前を解決
-        let resolvedName: string | null = json.name ?? json.group_name ?? null;
-        if (!resolvedName) {
-          const listRes = await fetch(`/api/v1/users/list?limit=100&offset=0`, {
-            credentials: "include",
-          });
-          if (listRes.ok) {
-            const data = await listRes.json();
-            const hit = Array.isArray(data?.groups)
-              ? data.groups.find((g: any) => g.group_id === groupId)
-              : null;
-            if (hit?.name) resolvedName = hit.name as string;
-          }
-        }
+        const name = String(j.group_name ?? j.name ?? j.groupName ?? "チーム");
+        const hours = Number(j.refresh_interval_hours ?? j.hours ?? 24);
 
-        const next: GroupInfo = {
-          id: json.id ?? groupId,
-          name: resolvedName ?? "チーム",
-          updateFrequency: json.update_frequency ?? "1d",
-          isOwner: Boolean(json.is_owner ?? json.is_admin ?? false),
-        };
-
-        setGroupInfo(next);
-        setEditedGroupName(next.name);
-        setEditedFrequency(next.updateFrequency);
-      } catch {
-        const fallback: GroupInfo = {
+        const info: GroupInfo = {
           id: groupId,
-          name: "チーム",
-          updateFrequency: "1d",
-          isOwner: false,
+          name,
+          updateFrequencyKey: hoursToKey(hours),
+          isOwner: true, // 必要なら別APIで厳密化
         };
+        setGroupInfo(info);
+        setEditedGroupName(info.name);
+        setEditedFrequencyKey(info.updateFrequencyKey);
+      } catch {
+        const fallback: GroupInfo = { id: groupId, name: "チーム", updateFrequencyKey: "1d", isOwner: false };
         setGroupInfo(fallback);
         setEditedGroupName(fallback.name);
-        setEditedFrequency(fallback.updateFrequency);
+        setEditedFrequencyKey(fallback.updateFrequencyKey);
       } finally {
         setIsLoading(false);
       }
@@ -102,12 +80,37 @@ export default function GroupManagementPage({ params }: PageProps) {
     load();
   }, [groupId]);
 
-
-  const handleUpdateSettings = () => {
-    alert(`設定を更新: ${editedGroupName}`);
+  const handleSave = async () => {
+    if (!groupInfo) return;
+    setIsSaving(true);
+    try {
+      const payload = {
+        group_id: groupInfo.id,
+        group_name: editedGroupName,
+        refresh_interval_hours: keyToHours[editedFrequencyKey],
+      };
+      const res = await fetch("/api/v1/groups/settings/update", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(payload),
+      });
+      const text = await res.text();
+      if (!res.ok) {
+        alert(`更新に失敗しました（${res.status}）\n${text}`);
+        return;
+      }
+      setGroupInfo(prev => prev ? { ...prev, name: editedGroupName, updateFrequencyKey: editedFrequencyKey } : prev);
+      alert("保存しました");
+      router.refresh();
+    } catch {
+      alert("通信エラーが発生しました");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
-  const handleLeaveGroup = async() => {
+  const handleLeave = async () => {
     if (!confirm("本当に脱退しますか？")) return;
     setIsLoading(true);
     try {
@@ -132,7 +135,7 @@ export default function GroupManagementPage({ params }: PageProps) {
     }
   };
 
-  const handleDeleteGroup = async () => {
+  const handleDelete = async () => {
     if (!confirm("本当に削除しますか？この操作は元に戻せません。")) return;
     setIsLoading(true);
     try {
@@ -144,9 +147,7 @@ export default function GroupManagementPage({ params }: PageProps) {
       });
       if (!res.ok) {
         const msg = await res.text();
-        const human =
-          res.status === 403 ? "削除権限がありません。" : `削除に失敗しました（${res.status}）`;
-        alert(`${human}\n${msg}`);
+        alert(`削除に失敗しました（${res.status}）\n${msg}`);
         setIsLoading(false);
         return;
       }
@@ -162,9 +163,7 @@ export default function GroupManagementPage({ params }: PageProps) {
   if (isLoading || !groupInfo) {
     return (
       <div className="fixed inset-0 bg-white bg-opacity-50 flex items-center justify-center">
-        <div className="bg-white rounded-lg p-4">
-          <p>読み込み中...</p>
-        </div>
+        <div className="bg-white rounded-lg p-4"><p>読み込み中...</p></div>
       </div>
     );
   }
@@ -173,7 +172,6 @@ export default function GroupManagementPage({ params }: PageProps) {
     <div className="bg-white min-h-screen">
       <div className="px-4 pb-8">
         <ModalHeader />
-
         <div className="text-center">
           <h1 className="text-2xl font-bold text-black">{groupInfo.name}</h1>
         </div>
@@ -184,15 +182,15 @@ export default function GroupManagementPage({ params }: PageProps) {
           <GroupSettingsChangeSection
             groupName={editedGroupName}
             onNameChange={(e) => setEditedGroupName(e.target.value)}
-            frequency={editedFrequency}
-            onFrequencyChange={(e) => setEditedFrequency(e.target.value)}
-            onSubmit={handleUpdateSettings}
+            frequency={editedFrequencyKey}
+            onFrequencyChange={(e) => setEditedFrequencyKey(e.target.value as FrequencyKey)}
+            onSubmit={handleSave}
           />
 
           <GroupDangerZoneSection
             isOwner={groupInfo.isOwner}
-            onLeave={handleLeaveGroup}
-            onDelete={handleDeleteGroup}
+            onLeave={handleLeave}
+            onDelete={handleDelete}
           />
         </main>
 

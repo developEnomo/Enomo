@@ -2,6 +2,7 @@ package domain
 
 import (
 	"net/http"
+	"strings"
 
 	"enomo/api/internal/repository"
 	"enomo/api/internal/usecase"
@@ -11,7 +12,11 @@ import (
 
 type GroupSettingsHandler struct {
 	UC    usecase.GroupSettingsUsecase
-	store repository.TokenStore
+	store TokenStore
+}
+
+type TokenStore interface {
+	Get(token string) (userID string, ok bool, err error)
 }
 
 func NewGroupSettingsHandler(uc usecase.GroupSettingsUsecase, store repository.TokenStore) *GroupSettingsHandler {
@@ -21,30 +26,37 @@ func NewGroupSettingsHandler(uc usecase.GroupSettingsUsecase, store repository.T
 // GET /api/v1/groups/settings?group_id=...
 func (h *GroupSettingsHandler) Get(c echo.Context) error {
 	groupID := c.QueryParam("group_id")
-	if groupID == "" {
+	if strings.TrimSpace(groupID) == "" {
 		return c.JSON(http.StatusBadRequest, map[string]any{"error": "group_id is required"})
 	}
-	hours, err := h.UC.GetHours(c.Request().Context(), groupID)
+	out, err := h.UC.Get(c.Request().Context(), groupID)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]any{"error": "failed_to_get_settings"})
 	}
 	return c.JSON(http.StatusOK, map[string]any{
-		"group_id":               groupID,
-		"refresh_interval_hours": hours,
+		"group_id":               out.GroupID,
+		"group_name":             out.GroupName,
+		"refresh_interval_hours": out.RefreshIntervalHours,
 	})
 }
 
 type updateReq struct {
-	GroupID string `json:"group_id"`
-	Hours   int    `json:"refresh_interval_hours"`
+	GroupID              string  `json:"group_id"`
+	GroupName            *string `json:"group_name,omitempty"`
+	RefreshIntervalHours *int    `json:"refresh_interval_hours,omitempty"`
 }
 
 // POST /api/v1/groups/settings/update
 func (h *GroupSettingsHandler) Update(c echo.Context) error {
 	var req updateReq
-	if err := c.Bind(&req); err != nil || req.GroupID == "" {
+	if err := c.Bind(&req); err != nil || strings.TrimSpace(req.GroupID) == "" {
 		return c.JSON(http.StatusBadRequest, map[string]any{"error": "invalid_request"})
 	}
+	// どちらも指定なしは NG
+	if req.GroupName == nil && req.RefreshIntervalHours == nil {
+		return c.JSON(http.StatusBadRequest, map[string]any{"error": "no_fields_to_update"})
+	}
+
 	actor := ""
 	if ck, err := c.Cookie("session_token"); err == nil && ck.Value != "" {
 		if uid, ok, err := h.store.Get(ck.Value); err == nil && ok {
@@ -55,9 +67,17 @@ func (h *GroupSettingsHandler) Update(c echo.Context) error {
 		return c.JSON(http.StatusUnauthorized, map[string]any{"error": "unauthorized"})
 	}
 
-	hours, err := h.UC.UpdateHours(c.Request().Context(), req.GroupID, req.Hours, actor)
+	out, err := h.UC.Update(c.Request().Context(), usecase.UpdateGroupSettingsInput{
+		GroupID:              req.GroupID,
+		GroupName:            req.GroupName,
+		RefreshIntervalHours: req.RefreshIntervalHours,
+	}, actor)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]any{"error": err.Error()})
 	}
-	return c.JSON(http.StatusOK, map[string]any{"group_id": req.GroupID, "refresh_interval_hours": hours})
+	return c.JSON(http.StatusOK, map[string]any{
+		"group_id":               out.GroupID,
+		"group_name":             out.GroupName,
+		"refresh_interval_hours": out.RefreshIntervalHours,
+	})
 }

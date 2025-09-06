@@ -57,7 +57,7 @@ func main() {
 	leaveUC := usecase.NewGroupLeaveUsecase(memberRepo, groupRepo)
 	recoUC := usecase.NewRecommendationsUsecase(energyRepo, spotifyClient)
 	recoRefreshUC := usecase.NewRecommendationsRefreshUsecase(energyRepo, spotifyClient, groupRepo)
-	settingsUC := usecase.NewGroupSettingsUsecase(groupRepo /*, memberRepo*/)
+	settingsUC := usecase.NewGroupSettingsUsecase(groupRepo)
 
 	// --- handlers ---
 	meH := domain.NewUserMeHandler(meUC, store)

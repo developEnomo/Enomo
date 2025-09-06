@@ -61,29 +61,45 @@ func (r *GroupRepository) OwnsAny(ctx context.Context, ownerID string) (bool, er
 	return exists, err
 }
 
-// 更新頻度を取得
+// 追加：名称取得・更新
+func (r *GroupRepository) GetName(ctx context.Context, groupID string) (string, error) {
+	var name string
+	err := r.DB.QueryRowContext(ctx, `SELECT name FROM groups WHERE id = $1`, groupID).Scan(&name)
+	return name, err
+}
+
+func (r *GroupRepository) UpdateName(ctx context.Context, groupID, name string) error {
+	res, err := r.DB.ExecContext(ctx, `UPDATE groups SET name = $2 WHERE id = $1`, groupID, name)
+	if err != nil {
+		return err
+	}
+	if n, _ := res.RowsAffected(); n == 0 {
+		return sql.ErrNoRows
+	}
+	return nil
+}
+
+// 更新頻度取得・更新（現状踏襲）
 func (r *GroupRepository) GetRefreshIntervalHours(ctx context.Context, groupID string) (int, error) {
 	var h int
 	err := r.DB.QueryRowContext(ctx, `
-		SELECT refresh_interval_hours
+		SELECT refresh_interval_hours::int
 		  FROM groups
 		 WHERE id = $1
 	`, groupID).Scan(&h)
 	return h, err
 }
 
-// 更新頻度を変更
 func (r *GroupRepository) UpdateRefreshIntervalHours(ctx context.Context, groupID string, hours int) error {
 	_, err := r.DB.ExecContext(ctx, `
 UPDATE groups
-   SET refresh_interval_hours = $1,
+   SET refresh_interval_hours = $1::smallint,
        next_refresh_at = refreshed_at + make_interval(hours => $1)
  WHERE id = $2
 `, hours, groupID)
 	return err
 }
 
-// 期限到来のグループを取得（いま更新すべきもの）
 func (r *GroupRepository) FindDueGroups(ctx context.Context, limit int) ([]string, error) {
 	const q = `
 SELECT id
@@ -109,7 +125,6 @@ SELECT id
 	return ids, rows.Err()
 }
 
-// Refresh実行後にrefreshed_atを刻む
 func (r *GroupRepository) TouchRefreshedAt(ctx context.Context, groupID string) error {
 	_, err := r.DB.ExecContext(ctx, `
 UPDATE groups
@@ -120,7 +135,6 @@ UPDATE groups
 	return err
 }
 
-// groups.track_id を1曲だけ更新（nilでクリアも可）
 func (r *GroupRepository) UpdateTrackID(ctx context.Context, groupID string, trackID *string) error {
 	const q = `UPDATE groups SET track_id = $2 WHERE id = $1;`
 	res, err := r.DB.ExecContext(ctx, q, groupID, trackID)
