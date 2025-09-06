@@ -212,8 +212,9 @@ export default function SettingPage() {
             onDeleteAccount={handleDeleteAccount}
           />
         </main>
-        <Footer />
+    
       </div>
+          <Footer />
     </div>
   );
 }
