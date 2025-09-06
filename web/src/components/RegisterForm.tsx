@@ -88,7 +88,7 @@ export default function RegisterForm() {
         </div>
         
         {/* 新規登録ボタン */}
-        <div className="pt-8 flex justify-center">
+        <div className="pt-4 flex justify-center">
           <Button type="submit" disabled={isLoading} aria-busy={isLoading}>
             {isLoading ? '登録中...' : '新規登録する'}
           </Button>
@@ -96,7 +96,7 @@ export default function RegisterForm() {
       </form>
 
         <Link href="/login" className="text-sm text-[#861F6D] mt-2 mb-2 underline hover:text-[#F66FD4] flex justify-center">
-          ログインページへ
+          ログインはこちら
         </Link>
 
     </div>
