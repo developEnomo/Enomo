@@ -7,9 +7,9 @@ CREATE TABLE IF NOT EXISTS users (
   email          CITEXT  NOT NULL UNIQUE,
   password       TEXT    NOT NULL,
   display_name   TEXT    NOT NULL CHECK (length(display_name) <= 50),
-  energy_value   SMALLINT NOT NULL DEFAULT 3 CHECK (energy_value BETWEEN 1 AND 4),
+  energy_value   SMALLINT NOT NULL DEFAULT 3 CHECK (energy_value BETWEEN 1 AND 5),
   created_at     TIMESTAMPTZ NOT NULL DEFAULT now(),
-  updated_at     TIMESTAMPTZ NOT NULL DEFAULT now()
+  updated_at     TIMESTAMPTZ NOT NULL DEFAULT now() 
 );
 CREATE INDEX IF NOT EXISTS idx_users_updated_at ON users (updated_at DESC);
 
