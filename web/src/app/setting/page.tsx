@@ -9,6 +9,21 @@ import CreateGroupSection from '@/components/CreateGroupSection';
 import AccountManagementSection from '@/components/AccountManagementSection';
 import Footer from '@/components/footer/Footer';
 
+// Helper function to convert frequency string to hours
+const frequencyToHours = (freq: string): number => {
+  switch (freq) {
+    case '12h': return 12;
+    case '1d': return 24;
+    case '2d': return 48;
+    case '3d': return 72;
+    case '4d': return 96;
+    case '5d': return 120;
+    case '6d': return 144;
+    case '7d': return 168;
+    default: return 24; // Default to 1 day (24 hours)
+  }
+};
+
 export default function SettingPage() {
   const router = useRouter();
 
@@ -17,7 +32,7 @@ export default function SettingPage() {
   const [initialUsername, setInitialUsername] = useState(''); // 更新失敗時に戻すための初期値
   const [groupId, setGroupId] = useState('');
   const [newGroupName, setNewGroupName] = useState('');
-  const [updateFrequency, setUpdateFrequency] = useState('daily'); // この値は現在APIでは使用されません
+  const [updateFrequency, setUpdateFrequency] = useState('1d'); // API仕様に合わせて初期値を'1d'に変更
 
   // --- 初期データ取得 ---
   useEffect(() => {
@@ -94,20 +109,42 @@ export default function SettingPage() {
       return;
     }
     try {
-      const response = await fetch('/api/v1/groups/make', {
+      // 1. グループを作成
+      const createResponse = await fetch('/api/v1/groups/make', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify({ name: newGroupName }),
       });
-      if (response.status !== 201) { // 201 Created を期待
-        const errorData = await response.json();
+
+      if (createResponse.status !== 201) { // 201 Created を期待
+        const errorData = await createResponse.json();
         throw new Error(errorData.error || 'グループの作成に失敗しました。');
       }
-      const newGroup = await response.json();
+      const newGroup = await createResponse.json();
+      
+      // 2. 作成したグループの更新頻度を設定
+      const hours = frequencyToHours(updateFrequency);
+      const updateResponse = await fetch('/api/v1/groups/settings/update', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({
+              group_id: newGroup.id,
+              refresh_interval_hours: hours,
+          }),
+      });
+
+      if (!updateResponse.ok) {
+        // 更新頻度の設定に失敗してもグループ作成は成功しているので、その旨を伝える
+        const errorData = await updateResponse.json();
+        throw new Error(`グループは作成されましたが、更新頻度の設定に失敗しました: ${errorData.error}`);
+      }
+
       alert(`グループ「${newGroup.name}」を作成しました。`);
       setNewGroupName('');
       router.push('/groups'); // グループ一覧ページに遷移
+
     } catch (error) {
       console.error('Error creating group:', error);
       alert(error instanceof Error ? error.message : 'エラーが発生しました。');
