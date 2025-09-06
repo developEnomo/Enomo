@@ -3,9 +3,11 @@ package domain
 import (
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/labstack/echo/v4"
 
+	"enomo/api/internal/config"
 	"enomo/api/internal/usecase"
 )
 
@@ -30,10 +32,9 @@ func (h *RecommendationsHandler) Get(c echo.Context) error {
 	embed := c.QueryParam("format") == "embed" || c.QueryParam("embed") == "1"
 
 	// --- 入力パース ---
-	valence := c.QueryParam("valence")
+	valence := strings.ToLower(strings.TrimSpace(c.QueryParam("valence")))
 	switch valence {
 	case "low", "mid", "high":
-		// ok
 	default:
 		valence = "mid"
 	}
@@ -64,12 +65,22 @@ func (h *RecommendationsHandler) Get(c echo.Context) error {
 		}
 	}
 
+	// market: 指定が無ければ環境変数の既定（SPOTIFY_MARKET）を使用。未設定なら "JP"
+	market := strings.ToUpper(strings.TrimSpace(c.QueryParam("market")))
+	if len(market) != 2 {
+		if def := config.DefaultSpotifyMarket(); def != "" {
+			market = def
+		} else {
+			market = "JP"
+		}
+	}
+
 	// --- 実行 ---
 	out, err := h.UC.Execute(c.Request().Context(), usecase.RecommendationsInput{
 		GroupID:        groupID,
 		ValencePreset:  valence,
 		PopularityBias: popBias,
-		Market:         "JP",
+		Market:         market,
 		MinPopularity:  60,
 		Limit:          limit,
 	})
@@ -100,10 +111,9 @@ func (h *RecommendationsHandler) Refresh(c echo.Context) error {
 	groupID := c.Param("groupId")
 
 	// --- 入力パース ---
-	valence := c.QueryParam("valence")
+	valence := strings.ToLower(strings.TrimSpace(c.QueryParam("valence")))
 	switch valence {
 	case "low", "mid", "high":
-		// ok
 	default:
 		valence = "mid"
 	}
@@ -134,12 +144,22 @@ func (h *RecommendationsHandler) Refresh(c echo.Context) error {
 		}
 	}
 
+	// market: 指定が無ければ環境変数の既定（SPOTIFY_MARKET）を使用。未設定なら "JP"
+	market := strings.ToUpper(strings.TrimSpace(c.QueryParam("market")))
+	if len(market) != 2 {
+		if def := config.DefaultSpotifyMarket(); def != "" {
+			market = def
+		} else {
+			market = "JP"
+		}
+	}
+
 	// --- 実行 ---
 	track, err := h.RefreshU.Refresh(c.Request().Context(), usecase.RecommendationsInput{
 		GroupID:        groupID,
 		ValencePreset:  valence,
 		PopularityBias: popBias,
-		Market:         "JP",
+		Market:         market,
 		MinPopularity:  60,
 		Limit:          limit,
 	})
