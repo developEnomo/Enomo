@@ -63,7 +63,7 @@ export default function GroupManagementPage({ params }: PageProps) {
     return (
       <div className="fixed inset-0 bg-white bg-opacity-50 flex items-center justify-center">
         <div className="bg-white rounded-lg p-4">
-          <p>読み込み中...</p>
+          <p className="text-center mt-10 font-bold text-[#C73BA4]">Loading...</p>
         </div>
       </div>
     );

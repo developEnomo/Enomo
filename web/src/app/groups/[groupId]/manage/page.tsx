@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, use } from "react";
-import { useRouter } from 'next/navigation';
+import { useRouter } from "next/navigation";
 
 // 必要なコンポーネントをインポート
 import ModalHeader from "@/components/ModalHeader";
@@ -43,7 +43,7 @@ export default function GroupManagementPage({ params }: PageProps) {
         updateFrequency: "1d",
         isOwner: true,
       };
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await new Promise((resolve) => setTimeout(resolve, 500));
 
       setGroupInfo(dummyData);
       setEditedGroupName(dummyData.name);
@@ -55,15 +55,23 @@ export default function GroupManagementPage({ params }: PageProps) {
   }, [groupId]);
 
   // イベントハンドラ
-  const handleUpdateSettings = () => { alert(`設定を更新: ${editedGroupName}`); };
-  const handleLeaveGroup = () => { if (confirm("本当に脱退しますか？")) alert("脱退しました"); };
-  const handleDeleteGroup = () => { if (confirm("本当に削除しますか？")) alert("削除しました"); };
+  const handleUpdateSettings = () => {
+    alert(`設定を更新: ${editedGroupName}`);
+  };
+  const handleLeaveGroup = () => {
+    if (confirm("本当に脱退しますか？")) alert("脱退しました");
+  };
+  const handleDeleteGroup = () => {
+    if (confirm("本当に削除しますか？")) alert("削除しました");
+  };
 
   if (isLoading || !groupInfo) {
     return (
       <div className="fixed inset-0 bg-white bg-opacity-50 flex items-center justify-center">
         <div className="bg-white rounded-lg p-4">
-          <p>読み込み中...</p>
+          <p className="text-center mt-10 font-bold text-[#C73BA4]">
+            Loading...
+          </p>
         </div>
       </div>
     );
@@ -72,10 +80,9 @@ export default function GroupManagementPage({ params }: PageProps) {
   return (
     <div className="bg-white min-h-screen">
       <div className="px-4 pb-8">
-        
         {/* 1. settingページと同じModalHeaderを使用 */}
         <ModalHeader />
-        
+
         {/* 2. 中央揃えのタイトルを追加 */}
         <div className="text-center">
           <h1 className="text-2xl font-bold text-black">{groupInfo.name}</h1>
@@ -91,7 +98,7 @@ export default function GroupManagementPage({ params }: PageProps) {
             onFrequencyChange={(e) => setEditedFrequency(e.target.value)}
             onSubmit={handleUpdateSettings}
           />
-          
+
           <GroupDangerZoneSection
             isOwner={groupInfo.isOwner}
             onLeave={handleLeaveGroup}
