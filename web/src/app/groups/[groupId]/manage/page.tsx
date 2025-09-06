@@ -219,8 +219,9 @@ export default function GroupManagementPage({ params }: PageProps) {
           />
         </main>
 
-        <Footer />
+       
       </div>
+       <Footer />
     </div>
   );
 }
