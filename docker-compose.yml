@@ -1,6 +1,8 @@
 services:
   api:
-    build: ./api           
+    build: ./api         
+    env_file:
+      - .env  
     working_dir: /app
     volumes:
       - ./api:/app         

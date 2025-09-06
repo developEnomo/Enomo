@@ -10,6 +10,7 @@ import (
 	"syscall"
 	"time"
 
+	"enomo/api/internal/config"
 	"enomo/api/internal/domain"
 	"enomo/api/internal/repository"
 	"enomo/api/internal/router"
@@ -31,6 +32,9 @@ func main() {
 		log.Fatal(err)
 	}
 
+	// ベースコンテキスト
+	ctx := context.Background()
+
 	// --- repositories ---
 	userRepo := repository.NewUserRepository(db)
 	groupRepo := repository.NewGroupRepository(db)
@@ -38,7 +42,12 @@ func main() {
 	store := repository.NewPostgresTokenStore(db)
 	activeRepo := repository.NewActiveGroupRepository(db)
 	energyRepo := repository.NewGroupEnergyRepository(db)
-	spotifyClient := repository.NewMockSpotify() // 本番は実Spotifyクライアントに差し替え
+
+	// Spotify クライアント（.env未設定→自動でMock／設定あり→Prod）
+	spotifyClient, err := config.NewSpotifyClient(ctx)
+	if err != nil {
+		log.Fatalf("spotify init error: %v", err)
+	}
 
 	// --- usecases ---
 	meUC := usecase.NewUserMeUsecase(userRepo)
@@ -105,17 +114,17 @@ func main() {
 	}()
 
 	// ★ 自動更新ジョブを起動
-	ctx, cancelJobs := context.WithCancel(context.Background())
+	jctx, cancelJobs := context.WithCancel(context.Background())
 	defer cancelJobs()
-	go startAutoRefresher(ctx, groupRepo, recoRefreshUC)
+	go startAutoRefresher(jctx, groupRepo, recoRefreshUC)
 
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
 	<-quit
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	if err := e.Shutdown(ctx); err != nil {
+	if err := e.Shutdown(shutdownCtx); err != nil {
 		log.Fatal(err)
 	}
 	if err := db.Close(); err != nil {
@@ -147,7 +156,6 @@ func startAutoRefresher(ctx context.Context, groupRepo *repository.GroupReposito
 				continue
 			}
 			for _, gid := range ids {
-				// 推薦→保存（パラメータは暫定。必要ならグループ別設定に）
 				_, err := refresher.Refresh(ctx, usecase.RecommendationsInput{
 					GroupID:        gid,
 					ValencePreset:  "mid",
@@ -160,7 +168,6 @@ func startAutoRefresher(ctx context.Context, groupRepo *repository.GroupReposito
 					log.Printf("[auto-refresh] Refresh group=%s error: %v", gid, err)
 					continue
 				}
-				// Refresh内で TouchRefreshedAt 済み
 				log.Printf("[auto-refresh] refreshed group=%s", gid)
 			}
 		}
