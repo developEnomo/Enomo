@@ -61,7 +61,7 @@ export default function GroupManagementPage({ params }: PageProps) {
   const handleUpdateSettings = () => {
     alert(`設定を更新: ${editedGroupName}`);
   };
-  
+
   const handleLeaveGroup = async() => {
     if (!confirm("本当に脱退しますか？")) return;
     setIsLoading(true);
@@ -87,8 +87,31 @@ export default function GroupManagementPage({ params }: PageProps) {
     }
   };
 
-  const handleDeleteGroup = () => {
-    if (confirm("本当に削除しますか？")) alert("削除しました");
+  const handleDeleteGroup = async () => {
+    if (!confirm("本当に削除しますか？この操作は元に戻せません。")) return;
+    setIsLoading(true);
+    try {
+      const res = await fetch("/api/v1/groups/delete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ group_id: groupId }),
+      });
+      if (!res.ok) {
+        const msg = await res.text();
+        const human =
+          res.status === 403 ? "削除権限がありません。" : `削除に失敗しました（${res.status}）`;
+        alert(`${human}\n${msg}`);
+        setIsLoading(false);
+        return;
+      }
+      await fetch("/api/v1/groups/now", { method: "DELETE", credentials: "include" });
+      router.push("/groups");
+      router.refresh();
+    } catch {
+      alert("通信エラーが発生しました");
+      setIsLoading(false);
+    }
   };
 
   if (isLoading || !groupInfo) {
