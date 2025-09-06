@@ -61,7 +61,7 @@ export default function GroupListPage() {
       </div>
       <main className="pt-10 pb-40"> {/* ヘッダーの高さ分だけ余白を確保 */}
         {isLoading ? (
-          <p className="text-center mt-10">読み込み中...</p>
+          <p className="text-center mt-10 font-bold text-[#C73BA4]">Loading...</p>
         ) : (
           groups.length > 0 ? (
             <GroupList groups={groups} />
