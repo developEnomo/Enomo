@@ -6,6 +6,8 @@ import (
 	"enomo/api/internal/repository"
 	"errors"
 	"time"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 var ErrUnauthorized = errors.New("unauthorized")
@@ -35,7 +37,7 @@ func NewUserLoginUsecase(r *repository.UserRepository) *UserLoginUsecase {
 }
 
 func (u *UserLoginUsecase) Login(ctx context.Context, in LoginRequest) (LoginResponse, error) {
-	if in.Email == "" || in.Password == "" {
+	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(in.Password)); err != nil {
 		return LoginResponse{}, ErrUnauthorized
 	}
 
