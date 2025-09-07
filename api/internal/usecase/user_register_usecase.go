@@ -4,8 +4,6 @@ import (
 	"context"
 	"enomo/api/internal/repository"
 	"time"
-
-	"golang.org/x/crypto/bcrypt"
 )
 
 type RegisterRequest struct {
@@ -33,13 +31,9 @@ func NewUserRegisterUsecase(r *repository.UserRepository) *UserRegisterUsecase {
 }
 
 func (u *UserRegisterUsecase) Register(ctx context.Context, in RegisterRequest) (RegisterResponse, error) {
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(in.Password), bcrypt.DefaultCost)
-	if err != nil {
-		return RegisterResponse{}, err
-	}
 	user := &repository.User{
 		Email:       in.Email,
-		Password:    string(hashedPassword),
+		Password:    in.Password,
 		DisplayName: in.DisplayName,
 		EnergyValue: in.EnergyValue,
 	}
