@@ -28,6 +28,7 @@ export default function Home() {
         alt="Enomo"
         width={80}
         height={106}
+        className="float-animation" /* ← この行を追加 */
       />
       <p className="text-[#C73BA4] font-bold">Loading...</p>
     </div>
